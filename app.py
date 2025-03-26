@@ -8,6 +8,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from flask_migrate import Migrate
+from sqlalchemy import create_engine
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
@@ -19,12 +20,20 @@ if database_url:
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
 else:
     # Local development database
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:4832@localhost/AIDB'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+
+# Initialize SQLAlchemy with explicit engine configuration
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], 
+                      **app.config.get('SQLALCHEMY_ENGINE_OPTIONS', {}))
+db = SQLAlchemy(app, engine=engine)
 migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.init_app(app)
