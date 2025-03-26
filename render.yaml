@@ -2,13 +2,15 @@ services:
   - type: web
     name: certificate-app
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && flask db upgrade
     startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
       - key: DATABASE_URL
         value: postgresql://certificate_db_t9a1_user:qsxs1eeo2IaZ0CBfnNECi8iKBJ0McL5w@dpg-cvi5bmdumphs73cva41g-a/certificate_db_t9a1
+      - key: FLASK_APP
+        value: app.py
 
 databases:
   - name: subomap-db

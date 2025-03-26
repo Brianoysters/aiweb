@@ -11,11 +11,18 @@ from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
-# Use DATABASE_URL from environment variables for Render deployment
+
+# Database Configuration
 database_url = os.environ.get('DATABASE_URL')
-if database_url and database_url.startswith('postgres://'):
-    database_url = database_url.replace('postgres://', 'postgresql://', 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'mysql+mysqlconnector://root:4832@localhost/AIDB'
+if database_url:
+    # Handle Render's postgres:// URL format
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Local development database
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:4832@localhost/AIDB'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
