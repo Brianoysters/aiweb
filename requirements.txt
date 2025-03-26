@@ -11,3 +11,4 @@ PyJWT==2.8.0
 mysql-connector-python==8.0.33
 gunicorn==21.2.0
 mysqlclient==2.2.4
+pymysql==1.1.0
