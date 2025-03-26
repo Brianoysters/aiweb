@@ -8,20 +8,14 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from flask_migrate import Migrate
-import pymysql
-pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
-
-# Database configuration
-if os.environ.get('DATABASE_URL'):
-    # Production database URL
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('mysql://', 'mysql+pymysql://')
-else:
-    # Local development database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:4832@localhost/AIDB'
-
+# Use DATABASE_URL from environment variables for Render deployment
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'mysql+mysqlconnector://root:4832@localhost/AIDB'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
