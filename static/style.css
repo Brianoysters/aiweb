@@ -1,0 +1,126 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border: none;
+}
+
+.module-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.alert {
+    border-radius: 0.5rem;
+}
+
+.btn {
+    border-radius: 0.5rem;
+    padding: 0.5rem 1.5rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 2rem;
+}
+
+.card-title {
+    color: #2c3e50;
+}
+
+.list-group-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item.active {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+#quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.certificate-container {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem;
+    background-color: #fff;
+    border: 15px solid #f0f0f0;
+    overflow: hidden;
+}
+
+.certificate-header {
+    margin-bottom: 2rem;
+}
+
+.certificate-logo {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 1.5rem;
+}
+
+.certificate-container::before {
+    content: "SUBOMAP AFRICA GEOSYSTEMS";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 3rem;
+    color: rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.certificate-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.certificate-title {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.certificate-subtitle {
+    font-size: 2rem;
+    color: #34495e;
+    margin-bottom: 2rem;
+}
+
+.watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 4rem;
+    opacity: 0.03;
+    white-space: nowrap;
+    pointer-events: none;
+    width: 100%;
+    text-align: center;
+}
+
+.certificate-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}

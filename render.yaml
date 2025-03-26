@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: subomap-webgis
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: subomap-db
+          property: connectionString
+
+databases:
+  - name: subomap-db
+    databaseName: AIDB
+    user: admin
+    plan: free

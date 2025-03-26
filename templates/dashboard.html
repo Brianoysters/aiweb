@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Welcome, {{ current_user.username }}!</h2>
+
+<div class="row mt-4">
+    {% for module in modules %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Module {{ module.order }}: {{ module.title }}</h5>
+                {% set module_progress = progress|selectattr("module_id", "equalto", module.id)|first %}
+                
+                {% if module_progress and module_progress.completed %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> Completed on {{ module_progress.completion_date.strftime('%B %d, %Y') }}
+                    </div>
+                {% else %}
+                    {% if module.order == 1 or (modules|selectattr("order", "equalto", module.order - 1)|first).id|string in progress|map(attribute='module_id')|map('string')|list %}
+                        {% if module.order == 5 %}
+                            <a href="{{ url_for('quiz') }}" class="btn btn-primary">Start Final Assessment</a>
+                        {% else %}
+                            <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-primary">Start Module</a>
+                        {% endif %}
+                    {% else %}
+                        <button class="btn btn-secondary" disabled>Complete previous module first</button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if progress|length == modules|length - 1 %}
+<div class="text-center mt-4">
+    <a href="{{ url_for('quiz') }}" class="btn btn-lg btn-success">Take Final Quiz</a>
+</div>
+{% endif %}
+{% endblock %}
