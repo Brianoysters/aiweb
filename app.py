@@ -8,33 +8,15 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from flask_migrate import Migrate
-from sqlalchemy import create_engine
+from config import Config
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
+app.config.from_object(Config)
 
-# Database Configuration
-database_url = os.environ.get('DATABASE_URL')
-if database_url:
-    # Handle Render's postgres:// URL format
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-    }
-else:
-    # Local development database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:4832@localhost/AIDB'
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize SQLAlchemy with explicit engine configuration
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], 
-                      **app.config.get('SQLALCHEMY_ENGINE_OPTIONS', {}))
-db = SQLAlchemy(app, engine=engine)
+# Initialize SQLAlchemy
+db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -52,6 +34,7 @@ class Module(db.Model):
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     order = db.Column(db.Integer, nullable=False)
+    doc_link = db.Column(db.String(500), nullable=True)  # Added field for documentation link
     progress = db.relationship('Progress', backref='module', lazy=True)
 
 class Progress(db.Model):
@@ -143,7 +126,7 @@ def module(module_id):
             flash('Please complete the previous module first')
             return redirect(url_for('dashboard'))
     
-    return render_template('module.html', module=module, progress=progress)
+    return render_template('module.html', module=module, progress=progress, doc_link=module.doc_link)
 
 @app.route('/complete_module/<int:module_id>')
 @login_required
@@ -338,45 +321,91 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         
+        # Update existing modules with documentation links
+        module_links = {
+            1: "https://docs.google.com/document/d/1qajlv9m0qQ6mLHen5IqfnS-KY75TIc8x9NbKLwAzO0s/edit?usp=sharing",
+            2: "https://docs.google.com/document/d/1XKCEm18sHRooGkCC90IhcQvdWGCNGdKK2px4iOHCn9Q/edit?usp=sharing",
+            3: "https://docs.google.com/document/d/1u3mq0dvNmsIhZOKk4yLJWpvlbLT2n6L4VkoweE1rWWQ/edit?usp=sharing",
+            4: "https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"
+        }
+        
+        for order, link in module_links.items():
+            module = Module.query.filter_by(order=order).first()
+            if module:
+                module.doc_link = link
+                db.session.commit()
+        
         # Check if modules exist, if not create sample modules
         if not Module.query.first():
             modules = [
-                Module(order=1, title="Introduction to AI in Web GIS", 
-                      content="""<h3>Introduction to AI in Web GIS</h3>
-                      <p>This module covers the fundamentals of integrating AI with Web GIS systems:</p>
+                Module(order=1, title="Introduction to AI and ML in GIS", 
+                      content="""<h3>Overview of AI and ML in GIS</h3>
+                      <p>This module covers:</p>
                       <ul>
-                          <li>Understanding AI and Machine Learning basics</li>
-                          <li>Overview of Web GIS architecture</li>
-                          <li>Integration points between AI and GIS</li>
-                          <li>Basic tools and frameworks</li>
-                      </ul>"""),
+                        <li>AI and ML concepts in GIS context</li>
+                        <li>Role of AI and ML in GIS applications</li>
+                        <li>Data types and sources in GIS (Raster, Vector, Remote Sensing)</li>
+                        <li>Geospatial data processing fundamentals</li>
+                        <li>Ethical considerations and challenges</li>
+                      </ul>
+                      <h3>Practical Components</h3>
+                      <ul>
+                        <li>Basic Python scripting for GIS</li>
+                        <li>Introduction to geospatial libraries (GDAL, Rasterio, GeoPandas)</li>
+                      </ul>
+                      """,
+                      doc_link="https://docs.google.com/document/d/1qajlv9m0qQ6mLHen5IqfnS-KY75TIc8x9NbKLwAzO0s/edit?usp=sharing"),
                 Module(order=2, title="Machine Learning for Spatial Analysis", 
-                      content="""<h3>Machine Learning in Spatial Analysis</h3>
-                      <p>Learn how machine learning algorithms can be applied to spatial data:</p>
+                      content="""<h3>Key Topics</h3>
                       <ul>
-                          <li>Spatial pattern recognition</li>
-                          <li>Predictive modeling for geographic data</li>
-                          <li>Classification of spatial features</li>
-                          <li>Clustering algorithms for geographic data</li>
-                      </ul>"""),
-                Module(order=3, title="Deep Learning in GIS", 
-                      content="""<h3>Deep Learning Applications in GIS</h3>
-                      <p>Explore how deep learning enhances GIS capabilities:</p>
+                        <li>Supervised vs. Unsupervised Learning in GIS</li>
+                        <li>Feature Engineering for Spatial Data</li>
+                        <li>Spatial Clustering and Classification Techniques</li>
+                        <li>Regression Models for Geospatial Prediction</li>
+                        <li>Time-Series Analysis in GIS</li>
+                        <li>Deep Learning-Based Models</li>
+                      </ul>
+                      <h3>Practical Components</h3>
                       <ul>
-                          <li>Neural networks for spatial analysis</li>
-                          <li>Image recognition in satellite data</li>
-                          <li>Feature extraction from maps</li>
-                          <li>Time series analysis of spatial data</li>
-                      </ul>"""),
-                Module(order=4, title="Project Implementation", 
-                      content="""<h3>Practical Implementation</h3>
-                      <p>Apply your knowledge in real-world GIS projects:</p>
+                        <li>Implementing K-Means and DBSCAN for spatial clustering</li>
+                        <li>Training Random Forest models for land-use classification</li>
+                        <li>Using CNNs for feature extraction in remote sensing</li>
+                      </ul>
+                      """,
+                      doc_link="https://docs.google.com/document/d/1XKCEm18sHRooGkCC90IhcQvdWGCNGdKK2px4iOHCn9Q/edit?usp=sharing"),
+                Module(order=3, title="AI and Deep Learning for GIS Applications", 
+                      content="""<h3>Core Concepts</h3>
                       <ul>
-                          <li>Setting up an AI-powered Web GIS</li>
-                          <li>Implementing spatial analysis algorithms</li>
-                          <li>Creating interactive map features</li>
-                          <li>Deploying AI models in web environment</li>
-                      </ul>"""),
+                        <li>Neural Networks for Geospatial Data</li>
+                        <li>Object Detection in Remote Sensing</li>
+                        <li>Semantic Segmentation for Land Cover Classification</li>
+                        <li>Deep Learning Models (CNNs, RNNs) for GIS</li>
+                        <li>AI in Geospatial Automation and Decision Support</li>
+                      </ul>
+                      <h3>Practical Components</h3>
+                      <ul>
+                        <li>Training CNNs for land cover classification</li>
+                        <li>Using TensorFlow/Keras for geospatial image analysis</li>
+                      </ul>
+                      """,
+                      doc_link="https://docs.google.com/document/d/1u3mq0dvNmsIhZOKk4yLJWpvlbLT2n6L4VkoweE1rWWQ/edit?usp=sharing"),
+                Module(order=4, title="Practical Applications of AI and ML in GIS", 
+                      content="""<h3>Applications</h3>
+                      <ul>
+                        <li>AI for Water Body Detection in Satellite Images</li>
+                        <li>Route Optimization Using AI and GIS</li>
+                        <li>Real-time Geospatial Data Processing</li>
+                        <li>AI-Powered Urban Planning and Environmental Monitoring</li>
+                      </ul>
+                      <h3>Practical Components</h3>
+                      <ul>
+                        <li>Water Body Detection Using AI</li>
+                        <li>Implementing AI for detecting water bodies in remote sensing imagery</li>
+                        <li>Shortest Route Optimization Using GIS and AI</li>
+                        <li>Using Folium for mapping and visualization</li>
+                      </ul>
+                      """,
+                      doc_link="https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"),
                 Module(order=5, title="Final Assessment", 
                       content="""<h3>Final Assessment Instructions</h3>
                       <p>You have completed all the modules! Now it's time to test your knowledge:</p>

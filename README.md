@@ -58,3 +58,12 @@ The application uses SQLite with SQLAlchemy ORM. The database includes the follo
 - Passwords are hashed using Werkzeug's security functions
 - Flask-Login handles user session management
 - CSRF protection with Flask-WTF
+
+## Module Details
+
+Each module contains comprehensive learning materials and practical exercises. For detailed information about each module, please refer to the following documentation:
+
+- [Module 1: Introduction to AI in Web GIS](https://docs.google.com/document/d/1qajlv9m0qQ6mLHen5IqfnS-KY75TIc8x9NbKLwAzO0s/edit?usp=sharing)
+- [Module 2: Advanced AI Applications in GIS](https://docs.google.com/document/d/1XKCEm18sHRooGkCC90IhcQvdWGCNGdKK2px4iOHCn9Q/edit?usp=sharing)
+- [Module 3: Machine Learning for Spatial Analysis](https://docs.google.com/document/d/1u3mq0dvNmsIhZOKk4yLJWpvlbLT2n6L4VkoweE1rWWQ/edit?usp=sharing)
+- [Module 4: Deep Learning in Geospatial Applications](https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing)

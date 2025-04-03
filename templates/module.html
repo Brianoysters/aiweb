@@ -5,6 +5,13 @@
     <div class="card-body">
         <h2 class="card-title">Module {{ module.order }}: {{ module.title }}</h2>
         
+        {% if doc_link %}
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-book"></i> For detailed documentation and additional resources, please visit:
+            <a href="{{ doc_link }}" target="_blank" class="alert-link">Module Documentation</a>
+        </div>
+        {% endif %}
+        
         <div class="module-content mt-4">
             {{ module.content|safe }}
         </div>
