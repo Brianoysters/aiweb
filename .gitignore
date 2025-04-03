@@ -1,3 +1,4 @@
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -22,6 +23,8 @@ var/
 *.spec
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Testing
 htmlcov/
 .tox/
 .coverage
@@ -34,21 +37,40 @@ coverage.xml
 *.mo
 *.pot
 *.log
-local_settings.py
+
+# Flask
 instance/
 .webassets-cache
+local_settings.py
+
+# Environment
 .env
 .venv
 venv/
+venv_new/
 ENV/
+
+# IDE
 .vscode/
 .idea/
-*.sqlite
-temp_certificate.pdf
-certificates/
-*.db
-*.sqlite3
 *.swp
 *.swo
+
+# Database
+*.sqlite
+*.db
+*.sqlite3
+
+# Certificates and sensitive files
+temp_certificate.pdf
+certificates/
+*.pem
+*.key
+*.crt
+
+# OS
 .DS_Store
 Thumbs.db
+
+# Render specific
+render.yaml
