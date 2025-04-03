@@ -9,6 +9,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from flask_migrate import Migrate
 from config import Config
+from functools import wraps
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -25,7 +26,9 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)  # Increased length to 255
+    password_hash = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    is_paid = db.Column(db.Boolean, default=False)
     progress = db.relationship('Progress', backref='user', lazy=True)
     quiz_results = db.relationship('QuizResult', backref='user', lazy=True)
 
@@ -316,6 +319,42 @@ def download_certificate():
                 os.unlink(temp_file)
         except Exception as e:
             app.logger.error(f"Error cleaning up temporary file: {e}")
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash('You do not have permission to access this page')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    users = User.query.all()
+    return render_template('admin/dashboard.html', users=users)
+
+@app.route('/admin/user/<int:user_id>/toggle_payment', methods=['POST'])
+@login_required
+@admin_required
+def toggle_payment_status(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_paid = not user.is_paid
+    db.session.commit()
+    flash(f'Payment status for {user.username} has been updated')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/user/<int:user_id>/make_admin', methods=['POST'])
+@login_required
+@admin_required
+def make_admin(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_admin = True
+    db.session.commit()
+    flash(f'{user.username} has been made an admin')
+    return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
     with app.app_context():

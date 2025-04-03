@@ -3,6 +3,12 @@
 {% block content %}
 <h2>Welcome, {{ current_user.username }}!</h2>
 
+{% if not current_user.is_paid %}
+<div class="alert alert-warning">
+    <h4>Payment Required</h4>
+    <p>Please complete your payment to access the course content. Contact the administrator for assistance.</p>
+</div>
+{% else %}
 <div class="row mt-4">
     {% for module in modules %}
     <div class="col-md-6 mb-4">
@@ -36,5 +42,6 @@
 <div class="text-center mt-4">
     <a href="{{ url_for('quiz') }}" class="btn btn-lg btn-success">Take Final Quiz</a>
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}
