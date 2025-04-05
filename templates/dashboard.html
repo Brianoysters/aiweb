@@ -31,7 +31,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">{{ module.title }}</h5>
-                        <p class="card-text">{{ module.description[:100] }}...</p>
+                        <p class="card-text">{{ module.content[:100]|striptags }}...</p>
                         <div class="progress mb-3">
                             <div class="progress-bar" role="progressbar" 
                                  style="width: {% if module.id in completed_modules %}100{% else %}0{% endif %}%">
