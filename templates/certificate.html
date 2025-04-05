@@ -1,50 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h2 class="mb-0">Quiz Results</h2>
-        </div>
-        <div class="card-body">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <div class="text-center mb-4">
-                <h3>Congratulations on Completing the Quiz!</h3>
-                <p class="lead">You have successfully passed the assessment with a score of {{ latest_result.score|round(1) }}%</p>
-            </div>
-
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h4 class="card-title">Certificate Details</h4>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                    <strong>Name:</strong> {{ current_user.username }}
-                                </li>
-                                <li class="list-group-item">
-                                    <strong>Score:</strong> {{ latest_result.score|round(1) }}%
-                                </li>
-                                <li class="list-group-item">
-                                    <strong>Completion Date:</strong> {{ latest_result.completion_date.strftime('%B %d, %Y') }}
-                                </li>
-                                <li class="list-group-item">
-                                    <strong>Certificate Number:</strong> CERT-{{ current_user.id|string|rjust(4, '0') }}-{{ latest_result.id|string|rjust(4, '0') }}
-                                </li>
-                            </ul>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h2 class="text-success mb-4">Congratulations! 🎉</h2>
+                    <p class="lead">You have successfully completed the AI in Web GIS Course with a score of {{ "%.1f"|format(score) }}%</p>
+                    <p class="text-muted">Completed on {{ completion_date.strftime('%B %d, %Y') }}</p>
+                    
+                    <div class="certificate-preview mt-4 mb-4 p-4 border rounded">
+                        <h3 class="mb-4">Certificate Preview</h3>
+                        <div class="text-center">
+                            <p class="mb-2">This is to certify that</p>
+                            <h4 class="mb-3">{{ current_user.username }}</h4>
+                            <p class="mb-2">has successfully completed the</p>
+                            <h4 class="mb-3">AI in Web GIS Course</h4>
+                            <p class="mb-2">with a score of {{ "%.1f"|format(score) }}%</p>
+                            <p class="mb-2">Completed on {{ completion_date.strftime('%B %d, %Y') }}</p>
                         </div>
                     </div>
-
-                    <div class="text-center">
+                    
+                    <div class="mt-4">
                         <a href="{{ url_for('download_certificate') }}" class="btn btn-primary btn-lg">
                             <i class="fas fa-download"></i> Download Certificate
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg ms-2">
+                            <i class="fas fa-home"></i> Return to Dashboard
                         </a>
                     </div>
                 </div>

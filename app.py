@@ -271,7 +271,10 @@ def complete_module(module_id):
     progress.completed = True
     progress.completion_date = datetime.utcnow()
     db.session.commit()
-    return redirect(url_for('dashboard'))
+    
+    # Get the module to find its course_id
+    module = Module.query.get_or_404(module_id)
+    return redirect(url_for('course', course_id=module.course_id))
 
 @app.route('/quiz')
 @login_required
@@ -387,6 +390,28 @@ def certificate():
         flash('You need to pass the quiz to get a certificate.', 'warning')
         return redirect(url_for('dashboard'))
     
+    # First show the score and certificate preview
+    return render_template('certificate.html', 
+                         score=latest_result.score,
+                         completion_date=latest_result.completion_date)
+
+@app.route('/download_certificate')
+@login_required
+def download_certificate():
+    if not current_user.is_paid:
+        flash('Please complete your payment to download the certificate.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    # Get the latest quiz result
+    latest_result = QuizResult.query.filter_by(
+        user_id=current_user.id,
+        passed=True
+    ).order_by(QuizResult.completion_date.desc()).first()
+    
+    if not latest_result:
+        flash('You need to pass the quiz to get a certificate.', 'warning')
+        return redirect(url_for('dashboard'))
+    
     try:
         # Create certificate
         buffer = BytesIO()
@@ -414,14 +439,14 @@ def certificate():
         c.line(width-30, 30, width-30-corner_size, 30)
         c.line(width-30, 30, width-30, 30+corner_size)
         
-        # Add logo with background
-        logo_path = os.path.join(app.static_folder, 'logo.png')
-        if os.path.exists(logo_path):
-            # Add logo background
-            c.setFillColorRGB(0.95, 0.95, 0.95)  # Light gray background
-            c.rect(width/2 - 120, height - 220, 240, 120, fill=1)
-            # Draw logo
-            c.drawImage(logo_path, width/2 - 100, height - 200, width=200, height=100, preserveAspectRatio=True)
+        # Add watermark first (behind all text)
+        c.saveState()
+        c.setFillColorRGB(0.9, 0.9, 0.9)  # Light gray
+        c.setFont("Helvetica-Bold", 40)
+        c.translate(width/2, height/2)
+        c.rotate(45)
+        c.drawCentredString(0, 0, "SUBOMAP AFRICA GEOSYSTEMS")
+        c.restoreState()
         
         # Add company name with decorative underline
         c.setFont("Helvetica-Bold", 28)
@@ -504,15 +529,6 @@ def certificate():
         cert_number = f"CERT-{current_user.id:04d}-{latest_result.id:04d}"
         c.drawCentredString(width/2, 65, f"Certificate Number: {cert_number}")
         
-        # Add watermark
-        c.saveState()
-        c.setFillColorRGB(0.9, 0.9, 0.9)
-        c.setFont("Helvetica-Bold", 40)
-        c.translate(width/2, height/2)
-        c.rotate(45)
-        c.drawCentredString(0, 0, "SUBOMAP AFRICA GEOSYSTEMS")
-        c.restoreState()
-        
         c.save()
         
         # Get the value of the BytesIO buffer
@@ -530,105 +546,6 @@ def certificate():
         app.logger.error(f"Certificate generation error: {str(e)}")
         flash('Error generating certificate. Please try again later.', 'error')
         return redirect(url_for('dashboard'))
-
-@app.route('/download_certificate')
-@login_required
-def download_certificate():
-    if not current_user.is_paid:
-        flash('Please complete your payment to download the certificate.', 'warning')
-        return redirect(url_for('dashboard'))
-    
-    # Create a unique temporary file for the certificate
-    temp_dir = os.environ.get('TEMP', 'temp')
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
-    
-    temp_file = os.path.join(temp_dir, f'certificate_{current_user.id}_{int(datetime.now().timestamp())}.pdf')
-    
-    try:
-        # Create the PDF with letter size
-        c = canvas.Canvas(temp_file, pagesize=letter)
-        width, height = letter
-        
-        # Add company name at the top
-        c.setFont("Helvetica-Bold", 24)
-        c.drawCentredString(width/2, height - 150, "SUBOMAP AFRICA GEOSYSTEMS")
-        
-        # Add certificate title
-        c.setFont("Helvetica-Bold", 30)
-        c.drawCentredString(width/2, height - 200, "Certificate of Completion")
-        
-        # Add decorative border
-        c.setStrokeColorRGB(0.8, 0.8, 0.8)  # Light gray color
-        c.setLineWidth(15)
-        c.rect(50, 50, width-100, height-100)
-        
-        # Add watermark (smaller and contained within certificate)
-        c.saveState()
-        c.setFillColorRGB(0.9, 0.9, 0.9)  # Very light gray
-        c.setFont("Helvetica-Bold", 40)  # Reduced font size
-        c.translate(width/2, height/2)
-        c.rotate(45)
-        c.drawCentredString(0, 0, "SUBOMAP AFRICA GEOSYSTEMS")
-        c.restoreState()
-        
-        # Add certificate text
-        c.setFont("Helvetica", 16)
-        c.drawCentredString(width/2, height - 250, "This is to certify that")
-        
-        # Add user name
-        c.setFont("Helvetica-Bold", 24)
-        c.drawCentredString(width/2, height - 300, current_user.username)
-        
-        # Add completion text
-        c.setFont("Helvetica", 16)
-        c.drawCentredString(width/2, height - 350, "has successfully completed the")
-        c.drawCentredString(width/2, height - 380, "AI in Web GIS Course")
-        
-        # Add date
-        c.setFont("Helvetica", 14)
-        date_str = datetime.now().strftime("%B %d, %Y")
-        c.drawCentredString(width/2, height - 450, f"Completed on {date_str}")
-        
-        # Add signature lines
-        y_position = 150  # Position from bottom
-        line_width = 200  # Width of signature line
-        
-        # Course Director signature
-        c.setLineWidth(1)
-        c.setStrokeColorRGB(0, 0, 0)
-        c.line(width/4 - line_width/2, y_position, width/4 + line_width/2, y_position)
-        c.setFont("Helvetica", 12)
-        c.drawCentredString(width/4, y_position - 20, "Course Director")
-        
-        # CEO signature
-        c.line(3*width/4 - line_width/2, y_position, 3*width/4 + line_width/2, y_position)
-        c.drawCentredString(3*width/4, y_position - 20, "Chief Executive Officer")
-        
-        c.save()
-        
-        # Send the file
-        return_data = send_file(
-            temp_file,
-            mimetype='application/pdf',
-            as_attachment=True,
-            download_name=f'AI_WebGIS_Certificate_{current_user.username}.pdf'
-        )
-        
-        return return_data
-        
-    except Exception as e:
-        app.logger.error(f"Certificate download error: {str(e)}")
-        flash('Error generating certificate. Please try again later.', 'error')
-        return redirect(url_for('dashboard'))
-        
-    finally:
-        # Clean up the temporary file in a finally block to ensure it's always deleted
-        try:
-            if os.path.exists(temp_file):
-                os.unlink(temp_file)
-        except Exception as e:
-            app.logger.error(f"Error cleaning up temporary file: {e}")
 
 def admin_required(f):
     @wraps(f)
