@@ -109,18 +109,19 @@ class User(UserMixin, db.Model):
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    image_url = db.Column(db.String(200))
+    image_url = db.Column(db.String(500), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     modules = db.relationship('Module', backref='course', lazy=True)
 
 class Module(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     order = db.Column(db.Integer, nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    doc_link = db.Column(db.String(500), nullable=True)
     progress = db.relationship('Progress', backref='module', lazy=True)
 
 class Progress(db.Model):

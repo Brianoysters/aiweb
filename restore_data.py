@@ -47,7 +47,8 @@ def restore_data():
                         <li>Geospatial data processing fundamentals</li>
                         <li>Ethical considerations and challenges</li>
                     </ul>""",
-                    course_id=ai_course.id
+                    course_id=ai_course.id,
+                    doc_link="https://docs.google.com/document/d/1"
                 ),
                 Module(
                     order=2,
@@ -59,7 +60,8 @@ def restore_data():
                         <li>Spatial Clustering and Classification Techniques</li>
                         <li>Regression Models for Geospatial Prediction</li>
                     </ul>""",
-                    course_id=ai_course.id
+                    course_id=ai_course.id,
+                    doc_link="https://docs.google.com/document/d/2"
                 ),
                 Module(
                     order=3,
@@ -71,7 +73,8 @@ def restore_data():
                         <li>Semantic Segmentation for Land Cover Classification</li>
                         <li>Deep Learning Models (CNNs, RNNs) for GIS</li>
                     </ul>""",
-                    course_id=ai_course.id
+                    course_id=ai_course.id,
+                    doc_link="https://docs.google.com/document/d/3"
                 ),
                 Module(
                     order=4,
@@ -83,7 +86,8 @@ def restore_data():
                         <li>Real-time Geospatial Data Processing</li>
                         <li>AI-Powered Urban Planning</li>
                     </ul>""",
-                    course_id=ai_course.id
+                    course_id=ai_course.id,
+                    doc_link="https://docs.google.com/document/d/4"
                 ),
                 Module(
                     order=5,
@@ -95,7 +99,8 @@ def restore_data():
                         <li>You need to score 80% or higher to pass</li>
                         <li>Upon passing, you can download your certificate</li>
                     </ul>""",
-                    course_id=ai_course.id
+                    course_id=ai_course.id,
+                    doc_link="https://docs.google.com/document/d/5"
                 )
             ]
             
