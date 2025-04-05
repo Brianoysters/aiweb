@@ -1,212 +1,96 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <h2 class="card-title text-center mb-4">Final Assessment</h2>
-        <div class="alert alert-info">
-            <p><strong>Quiz Rules:</strong></p>
-            <ul>
-                <li>You have 2 attempts per day</li>
-                <li>After 2 attempts, you must wait until the next day to try again</li>
-                <li>You need to score 80% or higher to pass</li>
-                <li>Once you pass, you can download your certificate</li>
-            </ul>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Final Assessment</h2>
         </div>
-        <div id="quiz-container">
-            <div id="question-container" class="mb-4">
-                <h4 id="question-text"></h4>
-                <div id="options-container" class="list-group">
+        <div class="card-body">
+            {% if not all_modules_completed %}
+            <div class="alert alert-warning">
+                <h4>Incomplete Course</h4>
+                <p>Please complete all previous modules before attempting the final assessment.</p>
+                <a href="{{ url_for('course', course_id=1) }}" class="btn btn-primary">Return to Course</a>
+            </div>
+            {% elif next_attempt_available %}
+            <div class="alert alert-info">
+                <h4>Next Attempt Available</h4>
+                <p>Your next attempt will be available on: {{ next_attempt_available.strftime('%B %d, %Y at %I:%M %p') }}</p>
+            </div>
+            {% else %}
+            <div class="quiz-instructions mb-4">
+                <h4>Instructions:</h4>
+                <ul>
+                    <li>This quiz consists of 10 multiple-choice questions</li>
+                    <li>You need to score 80% or higher to pass</li>
+                    <li>You have 2 attempts per day</li>
+                    <li>There is a 12-hour cooldown period between attempts</li>
+                    <li>Once you start, you must complete the quiz</li>
+                </ul>
+            </div>
+
+            <form method="POST" action="{{ url_for('submit_quiz') }}" id="quizForm">
+                <div class="quiz-questions">
+                    <div class="question mb-4">
+                        <h5>1. What is the primary goal of Artificial Intelligence?</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q1" id="q1a" value="a" required>
+                            <label class="form-check-label" for="q1a">To create machines that can think and act like humans</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q1" id="q1b" value="b">
+                            <label class="form-check-label" for="q1b">To replace human workers with machines</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q1" id="q1c" value="c">
+                            <label class="form-check-label" for="q1c">To make computers faster</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q1" id="q1d" value="d">
+                            <label class="form-check-label" for="q1d">To create video games</label>
+                        </div>
+                    </div>
+
+                    <div class="question mb-4">
+                        <h5>2. What is Machine Learning?</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q2" id="q2a" value="a" required>
+                            <label class="form-check-label" for="q2a">A subset of AI that enables systems to learn from data</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q2" id="q2b" value="b">
+                            <label class="form-check-label" for="q2b">A type of computer hardware</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q2" id="q2c" value="c">
+                            <label class="form-check-label" for="q2c">A programming language</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q2" id="q2d" value="d">
+                            <label class="form-check-label" for="q2d">A type of database</label>
+                        </div>
+                    </div>
+
+                    <!-- Add more questions here -->
+                    <!-- Questions 3-10 would follow the same pattern -->
+
                 </div>
-            </div>
-            
-            <div class="d-flex justify-content-between align-items-center">
-                <div>Question <span id="current-question">1</span> of <span id="total-questions">10</span></div>
-                <button id="next-btn" class="btn btn-primary" onclick="nextQuestion()" disabled>Next Question</button>
-            </div>
-        </div>
-        
-        <div id="results-container" style="display: none;">
-            <h3 class="text-center mb-4">Quiz Results</h3>
-            <p class="text-center">Your score: <span id="score">0</span>%</p>
-            <form id="submit-form" method="POST" action="{{ url_for('submit_quiz') }}">
-                <input type="hidden" name="score" id="final-score">
-                <div class="text-center">
-                    <button type="submit" class="btn btn-success">Submit Results</button>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Submit Quiz</button>
                 </div>
             </form>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <script>
-const questions = [
-    {
-        question: "Which AI technique is most commonly used for satellite image classification in Web GIS?",
-        options: [
-            "Convolutional Neural Networks (CNN)",
-            "Recurrent Neural Networks (RNN)",
-            "Linear Regression",
-            "Decision Trees"
-        ],
-        correct: 0
-    },
-    {
-        question: "What is the primary advantage of using machine learning for spatial analysis in Web GIS?",
-        options: [
-            "Reduced server costs",
-            "Automated pattern recognition in spatial data",
-            "Faster map loading times",
-            "Better user interface"
-        ],
-        correct: 1
-    },
-    {
-        question: "Which deep learning architecture is best suited for temporal spatial data analysis?",
-        options: [
-            "Feedforward Neural Networks",
-            "Support Vector Machines",
-            "Long Short-Term Memory (LSTM)",
-            "Random Forests"
-        ],
-        correct: 2
-    },
-    {
-        question: "What is the role of AI in automated map generalization?",
-        options: [
-            "To increase map file size",
-            "To simplify map features while preserving essential characteristics",
-            "To add more details to maps",
-            "To change map projections"
-        ],
-        correct: 1
-    },
-    {
-        question: "Which of the following is NOT a common application of AI in Web GIS?",
-        options: [
-            "Traffic prediction",
-            "Land use classification",
-            "Manual data entry",
-            "Change detection"
-        ],
-        correct: 2
-    },
-    {
-        question: "What type of neural network is most effective for object detection in aerial imagery?",
-        options: [
-            "YOLO (You Only Look Once)",
-            "Simple Perceptron",
-            "Hopfield Network",
-            "Boltzmann Machine"
-        ],
-        correct: 0
-    },
-    {
-        question: "Which technology is essential for real-time spatial AI analysis in web applications?",
-        options: [
-            "WebGL",
-            "Flash",
-            "Java Applets",
-            "Silverlight"
-        ],
-        correct: 0
-    },
-    {
-        question: "What is the primary purpose of using AI for feature extraction in GIS?",
-        options: [
-            "To slow down processing",
-            "To automatically identify and classify map elements",
-            "To increase data storage requirements",
-            "To manually verify data"
-        ],
-        correct: 1
-    },
-    {
-        question: "Which of the following is a key benefit of implementing AI-powered predictive analytics in Web GIS?",
-        options: [
-            "Increased data entry requirements",
-            "Manual processing of spatial patterns",
-            "Proactive decision-making based on spatial trends",
-            "Reduced accuracy in spatial analysis"
-        ],
-        correct: 2
-    },
-    {
-        question: "What role does machine learning play in web-based spatial clustering?",
-        options: [
-            "It requires manual intervention",
-            "It automatically identifies spatial patterns and groups",
-            "It slows down the clustering process",
-            "It increases data redundancy"
-        ],
-        correct: 1
+document.getElementById('quizForm').addEventListener('submit', function(e) {
+    if (!confirm('Are you sure you want to submit your answers? You cannot change them after submission.')) {
+        e.preventDefault();
     }
-];
-
-let currentQuestionIndex = 0;
-let score = 0;
-let answered = false;
-
-function loadQuestion() {
-    const question = questions[currentQuestionIndex];
-    document.getElementById('question-text').textContent = question.question;
-    
-    const optionsContainer = document.getElementById('options-container');
-    optionsContainer.innerHTML = '';
-    
-    question.options.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.className = 'list-group-item list-group-item-action';
-        button.textContent = option;
-        button.onclick = () => selectOption(index);
-        optionsContainer.appendChild(button);
-    });
-    
-    document.getElementById('current-question').textContent = currentQuestionIndex + 1;
-    document.getElementById('total-questions').textContent = questions.length;
-    document.getElementById('next-btn').disabled = true;
-    answered = false;
-}
-
-function selectOption(index) {
-    if (answered) return;
-    
-    const options = document.querySelectorAll('#options-container button');
-    options.forEach(option => option.classList.remove('active', 'list-group-item-success', 'list-group-item-danger'));
-    
-    const selectedOption = options[index];
-    selectedOption.classList.add('active');
-    
-    if (index === questions[currentQuestionIndex].correct) {
-        selectedOption.classList.add('list-group-item-success');
-        score++;
-    } else {
-        selectedOption.classList.add('list-group-item-danger');
-        options[questions[currentQuestionIndex].correct].classList.add('list-group-item-success');
-    }
-    
-    document.getElementById('next-btn').disabled = false;
-    answered = true;
-}
-
-function nextQuestion() {
-    currentQuestionIndex++;
-    
-    if (currentQuestionIndex < questions.length) {
-        loadQuestion();
-    } else {
-        showResults();
-    }
-}
-
-function showResults() {
-    const finalScore = (score / questions.length) * 100;
-    document.getElementById('quiz-container').style.display = 'none';
-    document.getElementById('results-container').style.display = 'block';
-    document.getElementById('score').textContent = finalScore.toFixed(1);
-    document.getElementById('final-score').value = finalScore;
-}
-
-loadQuestion();
+});
 </script>
 {% endblock %}
