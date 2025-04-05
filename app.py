@@ -153,13 +153,17 @@ def index():
 def signup():
     if request.method == 'POST':
         username = request.form['username']
-        email = request.form['email']
         password = request.form['password']
+        email = request.form['email']
         
         if User.query.filter_by(username=username).first():
-            flash('Username already exists')
+            flash('Username already taken')
             return redirect(url_for('signup'))
-            
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered')
+            return redirect(url_for('signup'))
+        
         user = User(
             username=username,
             email=email,
@@ -167,6 +171,8 @@ def signup():
         )
         db.session.add(user)
         db.session.commit()
+        
+        flash('Account created successfully! Please login.')
         return redirect(url_for('login'))
     return render_template('signup.html')
 
@@ -262,46 +268,32 @@ def complete_module(module_id):
 @app.route('/quiz')
 @login_required
 def quiz():
-    # Check if all previous modules are completed
-    modules_count = Module.query.count()
-    completed_count = Progress.query.filter_by(
-        user_id=current_user.id,
-        completed=True
-    ).count()
-    
-    if completed_count < modules_count - 1:  # Excluding quiz module
-        flash('Please complete all modules before taking the quiz')
+    if not current_user.is_paid:
+        flash('Please complete your payment to access the quiz.', 'warning')
         return redirect(url_for('dashboard'))
     
-    # Get latest quiz attempt
-    latest_attempt = QuizResult.query.filter_by(
-        user_id=current_user.id
-    ).order_by(QuizResult.completion_date.desc()).first()
+    # Get user's last quiz attempt
+    last_attempt = QuizResult.query.filter_by(user_id=current_user.id).order_by(QuizResult.attempt_number.desc()).first()
     
-    # Check attempt limits
-    if latest_attempt:
-        if latest_attempt.passed:
-            flash('You have already passed the quiz!')
-            return redirect(url_for('certificate'))
+    if last_attempt:
+        # Check if user has attempts remaining for today
+        if last_attempt.attempt_number >= 2:
+            # Check if 24 hours have passed since the first attempt of the day
+            first_attempt_today = QuizResult.query.filter(
+                QuizResult.user_id == current_user.id,
+                QuizResult.completion_date >= datetime.utcnow().date()
+            ).order_by(QuizResult.attempt_number).first()
             
-        current_time = datetime.utcnow()
-        if latest_attempt.next_attempt_available and current_time < latest_attempt.next_attempt_available:
-            wait_time = latest_attempt.next_attempt_available - current_time
-            hours = int(wait_time.total_seconds() / 3600)
-            minutes = int((wait_time.total_seconds() % 3600) / 60)
-            flash(f'Please wait {hours} hours and {minutes} minutes before your next attempt')
-            return redirect(url_for('dashboard'))
-            
-        attempts_today = QuizResult.query.filter(
-            QuizResult.user_id == current_user.id,
-            QuizResult.completion_date >= current_time.replace(hour=0, minute=0, second=0, microsecond=0)
-        ).count()
+            if first_attempt_today:
+                time_since_first_attempt = datetime.utcnow() - first_attempt_today.completion_date
+                if time_since_first_attempt.total_seconds() < 86400:  # 24 hours in seconds
+                    next_attempt_time = first_attempt_today.completion_date + timedelta(days=1)
+                    return render_template('quiz.html', next_attempt_available=next_attempt_time)
         
-        if attempts_today >= 2:
-            next_attempt = current_time.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-            flash(f'You have reached the maximum attempts for today. Try again tomorrow.')
-            return redirect(url_for('dashboard'))
-            
+        # Check if cooldown period has passed
+        if last_attempt.next_attempt_available and datetime.utcnow() < last_attempt.next_attempt_available:
+            return render_template('quiz.html', next_attempt_available=last_attempt.next_attempt_available)
+    
     return render_template('quiz.html')
 
 @app.route('/submit_quiz', methods=['POST'])
