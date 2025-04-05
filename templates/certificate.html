@@ -1,47 +1,52 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="text-center certificate-page">
-    <div class="certificate-container">
-        <div class="watermark">SUBOMAP AFRICA GEOSYSTEMS</div>
-        <div class="certificate-content">
-            <div class="certificate-header">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="SUBOMAP AFRICA GEOSYSTEMS" class="certificate-logo">
-            </div>
-            <h1 class="certificate-title">SUBOMAP AFRICA GEOSYSTEMS</h1>
-            <h2 class="certificate-subtitle">Certificate of Completion</h2>
-            <p class="lead">This is to certify that you have successfully completed the AI in Web GIS course!</p>
-            
-            <div class="mt-4">
-                <a href="{{ url_for('download_certificate') }}" class="btn btn-success btn-lg">
-                    Download Certificate
-                </a>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h2 class="mb-0">Quiz Results</h2>
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="text-center mb-4">
+                <h3>Congratulations on Completing the Quiz!</h3>
+                <p class="lead">You have successfully passed the assessment with a score of {{ latest_result.score|round(1) }}%</p>
             </div>
 
-            <div class="mt-5 signatures">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p class="signature-name">Eng. Brian Otieno</p>
-                        <p class="signature-title">Course Director & Co-partner SuBomap</p>
-                        <p class="signature-subtitle">Geospatial/Software Engineer</p>
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h4 class="card-title">Certificate Details</h4>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <strong>Name:</strong> {{ current_user.username }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Score:</strong> {{ latest_result.score|round(1) }}%
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Completion Date:</strong> {{ latest_result.completion_date.strftime('%B %d, %Y') }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Certificate Number:</strong> CERT-{{ current_user.id|string|rjust(4, '0') }}-{{ latest_result.id|string|rjust(4, '0') }}
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <p class="signature-name">Boaz Odhiambo Nyakongo</p>
-                        <p class="signature-title">CEO SuBomap</p>
-                        <p class="signature-subtitle">Land Surveyor</p>
+
+                    <div class="text-center">
+                        <a href="{{ url_for('download_certificate') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-download"></i> Download Certificate
+                        </a>
                     </div>
-                </div>
-            </div>
-            
-            <div class="mt-4">
-                <p>Share your achievement:</p>
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url_root }}" target="_blank" class="btn btn-primary">
-                        <i class="bi bi-linkedin"></i> Share on LinkedIn
-                    </a>
-                    <a href="https://twitter.com/intent/tweet?text=I%20just%20completed%20the%20AI%20in%20Web%20GIS%20course!%20Check%20it%20out%20at%20{{ request.url_root|urlencode }}" target="_blank" class="btn btn-dark">
-                        <i class="bi bi-twitter-x"></i> Share on X
-                    </a>
                 </div>
             </div>
         </div>

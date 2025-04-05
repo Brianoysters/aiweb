@@ -280,6 +280,18 @@ def quiz():
         flash('Please complete your payment to access the quiz.', 'warning')
         return redirect(url_for('dashboard'))
     
+    # Check if user has already passed the quiz
+    passed_result = QuizResult.query.filter_by(
+        user_id=current_user.id,
+        passed=True
+    ).first()
+    
+    if passed_result:
+        return render_template('quiz.html', 
+                             already_passed=True,
+                             score=passed_result.score,
+                             completion_date=passed_result.completion_date)
+    
     # Get user's last quiz attempt
     last_attempt = QuizResult.query.filter_by(user_id=current_user.id).order_by(QuizResult.attempt_number.desc()).first()
     
@@ -338,6 +350,7 @@ def submit_quiz():
     # Get attempt number
     attempt_count = QuizResult.query.filter_by(user_id=current_user.id).count()
     
+    # Store quiz result
     quiz_result = QuizResult(
         user_id=current_user.id,
         score=score,
@@ -349,11 +362,12 @@ def submit_quiz():
     db.session.add(quiz_result)
     db.session.commit()
     
+    # Prepare feedback message
     if passed:
-        flash('Congratulations! You have passed the quiz!')
+        flash(f'Congratulations! You scored {score:.1f}% and passed the quiz!', 'success')
         return redirect(url_for('certificate'))
     else:
-        flash(f'You scored {score}%. You need 80% to pass. Try again after the cooldown period.')
+        flash(f'You scored {score:.1f}%. You need 80% to pass. Try again after the cooldown period.', 'warning')
         return redirect(url_for('dashboard'))
 
 @app.route('/certificate')
@@ -363,23 +377,142 @@ def certificate():
         flash('Please complete your payment to access the certificate.', 'warning')
         return redirect(url_for('dashboard'))
     
+    # Get the latest quiz result
+    latest_result = QuizResult.query.filter_by(
+        user_id=current_user.id,
+        passed=True
+    ).order_by(QuizResult.completion_date.desc()).first()
+    
+    if not latest_result:
+        flash('You need to pass the quiz to get a certificate.', 'warning')
+        return redirect(url_for('dashboard'))
+    
     try:
         # Create certificate
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
         
-        # Add content
-        c.setFont("Helvetica-Bold", 24)
-        c.drawString(100, 700, "Certificate of Completion")
+        # Add decorative border with gradient
+        c.setStrokeColorRGB(0.2, 0.4, 0.6)  # Dark blue color
+        c.setLineWidth(2)
+        c.rect(30, 30, width-60, height-60)
         
+        # Add corner decorations
+        corner_size = 20
+        c.setLineWidth(1)
+        # Top-left corner
+        c.line(30, height-30, 30+corner_size, height-30)
+        c.line(30, height-30, 30, height-30-corner_size)
+        # Top-right corner
+        c.line(width-30, height-30, width-30-corner_size, height-30)
+        c.line(width-30, height-30, width-30, height-30-corner_size)
+        # Bottom-left corner
+        c.line(30, 30, 30+corner_size, 30)
+        c.line(30, 30, 30, 30+corner_size)
+        # Bottom-right corner
+        c.line(width-30, 30, width-30-corner_size, 30)
+        c.line(width-30, 30, width-30, 30+corner_size)
+        
+        # Add logo with background
+        logo_path = os.path.join(app.static_folder, 'logo.png')
+        if os.path.exists(logo_path):
+            # Add logo background
+            c.setFillColorRGB(0.95, 0.95, 0.95)  # Light gray background
+            c.rect(width/2 - 120, height - 220, 240, 120, fill=1)
+            # Draw logo
+            c.drawImage(logo_path, width/2 - 100, height - 200, width=200, height=100, preserveAspectRatio=True)
+        
+        # Add company name with decorative underline
+        c.setFont("Helvetica-Bold", 28)
+        c.setFillColorRGB(0.2, 0.4, 0.6)  # Dark blue color
+        c.drawCentredString(width/2, height - 150, "SUBOMAP AFRICA GEOSYSTEMS")
+        c.setStrokeColorRGB(0.2, 0.4, 0.6)
+        c.setLineWidth(2)
+        c.line(width/2 - 150, height - 160, width/2 + 150, height - 160)
+        
+        # Add certificate title with decorative elements
+        c.setFont("Helvetica-Bold", 36)
+        c.setFillColorRGB(0, 0, 0)  # Black color
+        c.drawCentredString(width/2, height - 250, "Certificate of Completion")
+        
+        # Add decorative line under title
+        c.setStrokeColorRGB(0.2, 0.4, 0.6)
+        c.setLineWidth(1)
+        c.line(width/2 - 200, height - 260, width/2 + 200, height - 260)
+        
+        # Add certificate text with improved spacing
+        c.setFont("Helvetica", 18)
+        c.drawCentredString(width/2, height - 300, "This is to certify that")
+        
+        # Add user name with decorative underline
+        c.setFont("Helvetica-Bold", 28)
+        c.drawCentredString(width/2, height - 350, current_user.username)
+        c.setStrokeColorRGB(0.2, 0.4, 0.6)
+        c.setLineWidth(1)
+        c.line(width/2 - 150, height - 360, width/2 + 150, height - 360)
+        
+        # Add completion text
+        c.setFont("Helvetica", 18)
+        c.drawCentredString(width/2, height - 400, "has successfully completed the")
+        c.drawCentredString(width/2, height - 430, "AI in Web GIS Course")
+        
+        # Add score with decorative background
+        c.setFillColorRGB(0.95, 0.95, 0.95)
+        c.rect(width/2 - 100, height - 480, 200, 40, fill=1)
+        c.setFont("Helvetica-Bold", 16)
+        c.setFillColorRGB(0.2, 0.4, 0.6)
+        c.drawCentredString(width/2, height - 460, f"Score: {latest_result.score:.1f}%")
+        
+        # Add date with decorative background
+        c.setFillColorRGB(0.95, 0.95, 0.95)
+        c.rect(width/2 - 150, height - 540, 300, 40, fill=1)
         c.setFont("Helvetica", 16)
-        c.drawString(100, 650, f"This is to certify that {current_user.username}")
-        c.drawString(100, 620, "has successfully completed the AI Course")
+        c.setFillColorRGB(0.2, 0.4, 0.6)
+        date_str = latest_result.completion_date.strftime("%B %d, %Y")
+        c.drawCentredString(width/2, height - 520, f"Completed on {date_str}")
         
-        c.setFont("Helvetica", 12)
-        c.drawString(100, 550, f"Date: {datetime.now().strftime('%B %d, %Y')}")
+        # Add signature section with decorative background
+        c.setFillColorRGB(0.95, 0.95, 0.95)
+        c.rect(50, 100, width-100, 100, fill=1)
         
-        # Save the PDF
+        # Add signature lines
+        y_position = 150  # Position from bottom
+        line_width = 200  # Width of signature line
+        
+        # Course Director signature
+        c.setLineWidth(1)
+        c.setStrokeColorRGB(0.2, 0.4, 0.6)
+        c.line(width/4 - line_width/2, y_position, width/4 + line_width/2, y_position)
+        c.setFont("Helvetica-Bold", 12)
+        c.drawCentredString(width/4, y_position - 20, "Course Director")
+        c.setFont("Helvetica", 10)
+        c.drawCentredString(width/4, y_position - 35, "Eng. Brian Otieno")
+        
+        # CEO signature
+        c.line(3*width/4 - line_width/2, y_position, 3*width/4 + line_width/2, y_position)
+        c.setFont("Helvetica-Bold", 12)
+        c.drawCentredString(3*width/4, y_position - 20, "Chief Executive Officer")
+        c.setFont("Helvetica", 10)
+        c.drawCentredString(3*width/4, y_position - 35, "Boaz Odhiambo Nyakongo")
+        
+        # Add certificate number with decorative background
+        c.setFillColorRGB(0.95, 0.95, 0.95)
+        c.rect(50, 50, width-100, 30, fill=1)
+        c.setFont("Helvetica", 10)
+        c.setFillColorRGB(0.2, 0.4, 0.6)
+        cert_number = f"CERT-{current_user.id:04d}-{latest_result.id:04d}"
+        c.drawCentredString(width/2, 65, f"Certificate Number: {cert_number}")
+        
+        # Add watermark
+        c.saveState()
+        c.setFillColorRGB(0.9, 0.9, 0.9)
+        c.setFont("Helvetica-Bold", 40)
+        c.translate(width/2, height/2)
+        c.rotate(45)
+        c.drawCentredString(0, 0, "SUBOMAP AFRICA GEOSYSTEMS")
+        c.restoreState()
+        
         c.save()
         
         # Get the value of the BytesIO buffer
@@ -389,7 +522,7 @@ def certificate():
         # Create response
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'attachment; filename=AI_Course_Certificate_{current_user.username}.pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=AI_WebGIS_Certificate_{current_user.username}.pdf'
         
         return response
         

@@ -1,246 +1,249 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Final Assessment</h2>
-        </div>
-        <div class="card-body">
-            {% if next_attempt_available %}
-            <div class="alert alert-info">
-                <h4>Next Attempt Available</h4>
-                <p>Your next attempt will be available on: {{ next_attempt_available.strftime('%B %d, %Y at %I:%M %p') }}</p>
-            </div>
-            {% else %}
-            <div class="quiz-instructions mb-4">
-                <h4>Instructions:</h4>
-                <ul>
-                    <li>This quiz consists of 10 multiple-choice questions</li>
-                    <li>You need to score 80% or higher to pass</li>
-                    <li>You have 2 attempts per day</li>
-                    <li>There is a 12-hour cooldown period between attempts</li>
-                    <li>Once you start, you must complete the quiz</li>
-                </ul>
-            </div>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    {% if already_passed %}
+                        <div class="text-center">
+                            <h2 class="text-success mb-4">Congratulations! 🎉</h2>
+                            <p class="lead">You have already passed the quiz with a score of {{ "%.1f"|format(score) }}% on {{ completion_date.strftime('%B %d, %Y') }}.</p>
+                            <div class="alert alert-info mt-4">
+                                <h4 class="alert-heading">Course Access</h4>
+                                <p>Feel free to go through the course contents at your own pace to practice and reinforce your knowledge.</p>
+                                <hr>
+                                <p class="mb-0">You can access all modules and materials anytime.</p>
+                            </div>
+                            <div class="mt-4">
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+                                <a href="{{ url_for('certificate') }}" class="btn btn-success">View Certificate</a>
+                            </div>
+                        </div>
+                    {% elif next_attempt_available %}
+                        <div class="text-center">
+                            <h2 class="text-warning mb-4">Quiz Attempt Limit Reached</h2>
+                            <p class="lead">You have reached the maximum number of attempts for today.</p>
+                            <p>Your next attempt will be available on:</p>
+                            <h4 class="text-primary">{{ next_attempt_available.strftime('%B %d, %Y at %I:%M %p') }}</h4>
+                            <div class="mt-4">
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <h2 class="text-center mb-4">AI in Web GIS Quiz</h2>
+                        <p class="text-center mb-4">Test your knowledge of AI in Web GIS. You need to score 80% or higher to pass.</p>
+                        
+                        <form method="POST" action="{{ url_for('submit_quiz') }}">
+                            <div class="mb-4">
+                                <h5>1. Which type of neural network is commonly used for image classification in GIS?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q1" id="q1a" value="a" required>
+                                    <label class="form-check-label" for="q1a">Convolutional Neural Network (CNN)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q1" id="q1b" value="b">
+                                    <label class="form-check-label" for="q1b">Recurrent Neural Network (RNN)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q1" id="q1c" value="c">
+                                    <label class="form-check-label" for="q1c">Long Short-Term Memory (LSTM)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q1" id="q1d" value="d">
+                                    <label class="form-check-label" for="q1d">Generative Adversarial Network (GAN)</label>
+                                </div>
+                            </div>
 
-            <form method="POST" action="{{ url_for('submit_quiz') }}" id="quizForm">
-                <div class="quiz-questions">
-                    <div class="question mb-4">
-                        <h5>1. Which AI technique is most commonly used for satellite image classification in Web GIS?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q1" id="q1a" value="a" required>
-                            <label class="form-check-label" for="q1a">CNN (Convolutional Neural Network)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q1" id="q1b" value="b">
-                            <label class="form-check-label" for="q1b">RNN (Recurrent Neural Network)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q1" id="q1c" value="c">
-                            <label class="form-check-label" for="q1c">LSTM (Long Short-Term Memory)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q1" id="q1d" value="d">
-                            <label class="form-check-label" for="q1d">SVM (Support Vector Machine)</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>2. What is the primary purpose of machine learning in GIS?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q2" id="q2a" value="a" required>
+                                    <label class="form-check-label" for="q2a">To create maps</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q2" id="q2b" value="b">
+                                    <label class="form-check-label" for="q2b">To automate pattern recognition in spatial data</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q2" id="q2c" value="c">
+                                    <label class="form-check-label" for="q2c">To store geographic data</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q2" id="q2d" value="d">
+                                    <label class="form-check-label" for="q2d">To measure distances</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>2. What is the primary advantage of using machine learning for spatial analysis in Web GIS?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q2" id="q2a" value="a" required>
-                            <label class="form-check-label" for="q2a">Faster data processing</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q2" id="q2b" value="b">
-                            <label class="form-check-label" for="q2b">Automated pattern recognition</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q2" id="q2c" value="c">
-                            <label class="form-check-label" for="q2c">Reduced storage requirements</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q2" id="q2d" value="d">
-                            <label class="form-check-label" for="q2d">Simplified user interface</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>3. Which neural network architecture is best suited for time-series analysis in GIS?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q3" id="q3a" value="a" required>
+                                    <label class="form-check-label" for="q3a">CNN</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q3" id="q3b" value="b">
+                                    <label class="form-check-label" for="q3b">GAN</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q3" id="q3c" value="c">
+                                    <label class="form-check-label" for="q3c">LSTM</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q3" id="q3d" value="d">
+                                    <label class="form-check-label" for="q3d">Autoencoder</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>3. Which deep learning architecture is best suited for temporal spatial data analysis?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q3" id="q3a" value="a" required>
-                            <label class="form-check-label" for="q3a">CNN (Convolutional Neural Network)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q3" id="q3b" value="b">
-                            <label class="form-check-label" for="q3b">RNN (Recurrent Neural Network)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q3" id="q3c" value="c">
-                            <label class="form-check-label" for="q3c">LSTM (Long Short-Term Memory)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q3" id="q3d" value="d">
-                            <label class="form-check-label" for="q3d">GAN (Generative Adversarial Network)</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>4. What is the main advantage of using AI in map generalization?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q4" id="q4a" value="a" required>
+                                    <label class="form-check-label" for="q4a">Increase map size</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q4" id="q4b" value="b">
+                                    <label class="form-check-label" for="q4b">Simplify map features while preserving important characteristics</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q4" id="q4c" value="c">
+                                    <label class="form-check-label" for="q4c">Add more details</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q4" id="q4d" value="d">
+                                    <label class="form-check-label" for="q4d">Change map colors</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>4. What is the role of AI in automated map generalization?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q4" id="q4a" value="a" required>
-                            <label class="form-check-label" for="q4a">Increase map complexity</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q4" id="q4b" value="b">
-                            <label class="form-check-label" for="q4b">Simplify map features</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q4" id="q4c" value="c">
-                            <label class="form-check-label" for="q4c">Add more details</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q4" id="q4d" value="d">
-                            <label class="form-check-label" for="q4d">Change map projections</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>5. Which of the following is NOT a typical application of AI in GIS?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q5" id="q5a" value="a" required>
+                                    <label class="form-check-label" for="q5a">Land cover classification</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q5" id="q5b" value="b">
+                                    <label class="form-check-label" for="q5b">Traffic pattern analysis</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q5" id="q5c" value="c">
+                                    <label class="form-check-label" for="q5c">Manual data entry</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q5" id="q5d" value="d">
+                                    <label class="form-check-label" for="q5d">Urban growth prediction</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>5. Which of the following is NOT a common application of AI in Web GIS?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q5" id="q5a" value="a" required>
-                            <label class="form-check-label" for="q5a">Traffic prediction</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q5" id="q5b" value="b">
-                            <label class="form-check-label" for="q5b">Land use classification</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q5" id="q5c" value="c">
-                            <label class="form-check-label" for="q5c">Manual data entry</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q5" id="q5d" value="d">
-                            <label class="form-check-label" for="q5d">Change detection</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>6. Which AI model is commonly used for object detection in satellite imagery?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q6" id="q6a" value="a" required>
+                                    <label class="form-check-label" for="q6a">YOLO (You Only Look Once)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q6" id="q6b" value="b">
+                                    <label class="form-check-label" for="q6b">K-means clustering</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q6" id="q6c" value="c">
+                                    <label class="form-check-label" for="q6c">Support Vector Machine</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q6" id="q6d" value="d">
+                                    <label class="form-check-label" for="q6d">Random Forest</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>6. What type of neural network is most effective for object detection in aerial imagery?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q6" id="q6a" value="a" required>
-                            <label class="form-check-label" for="q6a">YOLO (You Only Look Once)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q6" id="q6b" value="b">
-                            <label class="form-check-label" for="q6b">Simple Perceptron</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q6" id="q6c" value="c">
-                            <label class="form-check-label" for="q6c">Hopfield Network</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q6" id="q6d" value="d">
-                            <label class="form-check-label" for="q6d">Boltzmann Machine</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>7. What technology enables real-time 3D visualization in Web GIS?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q7" id="q7a" value="a" required>
+                                    <label class="form-check-label" for="q7a">WebGL</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q7" id="q7b" value="b">
+                                    <label class="form-check-label" for="q7b">HTML5</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q7" id="q7c" value="c">
+                                    <label class="form-check-label" for="q7c">CSS3</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q7" id="q7d" value="d">
+                                    <label class="form-check-label" for="q7d">JavaScript</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>7. Which technology is essential for real-time spatial AI analysis in web applications?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q7" id="q7a" value="a" required>
-                            <label class="form-check-label" for="q7a">WebGL</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q7" id="q7b" value="b">
-                            <label class="form-check-label" for="q7b">Flash</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q7" id="q7c" value="c">
-                            <label class="form-check-label" for="q7c">Java Applets</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q7" id="q7d" value="d">
-                            <label class="form-check-label" for="q7d">Silverlight</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>8. How does AI help in feature extraction from satellite imagery?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q8" id="q8a" value="a" required>
+                                    <label class="form-check-label" for="q8a">By creating new satellites</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q8" id="q8b" value="b">
+                                    <label class="form-check-label" for="q8b">By automatically identifying and classifying features</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q8" id="q8c" value="c">
+                                    <label class="form-check-label" for="q8c">By improving image resolution</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q8" id="q8d" value="d">
+                                    <label class="form-check-label" for="q8d">By reducing image size</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>8. What is the primary purpose of using AI for feature extraction in GIS?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q8" id="q8a" value="a" required>
-                            <label class="form-check-label" for="q8a">To increase data storage</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q8" id="q8b" value="b">
-                            <label class="form-check-label" for="q8b">To automatically identify and classify</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q8" id="q8c" value="c">
-                            <label class="form-check-label" for="q8c">To slow down processing</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q8" id="q8d" value="d">
-                            <label class="form-check-label" for="q8d">To manually verify data</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>9. What is the main benefit of using AI in spatial decision support systems?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q9" id="q9a" value="a" required>
+                                    <label class="form-check-label" for="q9a">Reducing data storage</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q9" id="q9b" value="b">
+                                    <label class="form-check-label" for="q9b">Speeding up map rendering</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q9" id="q9c" value="c">
+                                    <label class="form-check-label" for="q9c">Enabling proactive decision-making based on patterns</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q9" id="q9d" value="d">
+                                    <label class="form-check-label" for="q9d">Simplifying user interfaces</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>9. Which of the following is a key benefit of implementing AI-powered predictive analytics in Web GIS?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q9" id="q9a" value="a" required>
-                            <label class="form-check-label" for="q9a">Increased manual work</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q9" id="q9b" value="b">
-                            <label class="form-check-label" for="q9b">Reduced accuracy</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q9" id="q9c" value="c">
-                            <label class="form-check-label" for="q9c">Proactive decision-making</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q9" id="q9d" value="d">
-                            <label class="form-check-label" for="q9d">Slower processing</label>
-                        </div>
-                    </div>
+                            <div class="mb-4">
+                                <h5>10. How does machine learning improve geospatial data analysis?</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q10" id="q10a" value="a" required>
+                                    <label class="form-check-label" for="q10a">By reducing data accuracy</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q10" id="q10b" value="b">
+                                    <label class="form-check-label" for="q10b">By automatically identifying patterns and making predictions</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q10" id="q10c" value="c">
+                                    <label class="form-check-label" for="q10c">By increasing manual work</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q10" id="q10d" value="d">
+                                    <label class="form-check-label" for="q10d">By limiting data access</label>
+                                </div>
+                            </div>
 
-                    <div class="question mb-4">
-                        <h5>10. What role does machine learning play in web-based spatial clustering?</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q10" id="q10a" value="a" required>
-                            <label class="form-check-label" for="q10a">Requires manual intervention</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q10" id="q10b" value="b">
-                            <label class="form-check-label" for="q10b">Automatically identifies patterns</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q10" id="q10c" value="c">
-                            <label class="form-check-label" for="q10c">Slows down the process</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q10" id="q10d" value="d">
-                            <label class="form-check-label" for="q10d">Increases data redundancy</label>
-                        </div>
-                    </div>
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">Submit Quiz</button>
+                            </div>
+                        </form>
+                    {% endif %}
                 </div>
-
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary btn-lg">Submit Quiz</button>
-                </div>
-            </form>
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
-
-<script>
-document.getElementById('quizForm').addEventListener('submit', function(e) {
-    if (!confirm('Are you sure you want to submit your answers? You cannot change them after submission.')) {
-        e.preventDefault();
-    }
-});
-</script>
 {% endblock %}
