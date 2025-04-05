@@ -185,8 +185,8 @@ def dashboard():
     # Get all modules for the courses section
     modules = Module.query.all()
     
-    # Get all tutors for the tutors section
-    tutors = User.query.filter_by(is_tutor=True).all()
+    # Get all admin users for the admin section
+    admins = User.query.filter_by(is_admin=True).all()
     
     # Get user's progress
     user_progress = Progress.query.filter_by(user_id=current_user.id).all()
@@ -194,7 +194,7 @@ def dashboard():
     
     return render_template('dashboard.html', 
                          modules=modules,
-                         tutors=tutors,
+                         admins=admins,
                          completed_modules=completed_modules)
 
 @app.route('/courses')

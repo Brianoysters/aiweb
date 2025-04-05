@@ -4,17 +4,17 @@
 <div class="container mt-4">
     <h1 class="mb-4">Welcome, {{ current_user.username }}!</h1>
     
-    <!-- Tutors Section -->
+    <!-- Admin Section -->
     <section class="mb-5">
-        <h2>Our Tutors</h2>
+        <h2>Administrators</h2>
         <div class="row">
-            {% for tutor in tutors %}
+            {% for admin in admins %}
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">{{ tutor.username }}</h5>
-                        <p class="card-text">{{ tutor.bio or 'Expert tutor in AI and technology' }}</p>
-                        <a href="mailto:{{ tutor.email }}" class="btn btn-primary">Contact Tutor</a>
+                        <h5 class="card-title">{{ admin.username }}</h5>
+                        <p class="card-text">Administrator</p>
+                        <a href="mailto:{{ admin.email }}" class="btn btn-primary">Contact Admin</a>
                     </div>
                 </div>
             </div>
