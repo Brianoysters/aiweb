@@ -107,12 +107,20 @@ class User(UserMixin, db.Model):
     progress = db.relationship('Progress', backref='user', lazy=True)
     quiz_results = db.relationship('QuizResult', backref='user', lazy=True)
 
+class Course(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    image_url = db.Column(db.String(200))
+    is_active = db.Column(db.Boolean, default=True)
+    modules = db.relationship('Module', backref='course', lazy=True)
+
 class Module(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     order = db.Column(db.Integer, nullable=False)
-    doc_link = db.Column(db.String(500), nullable=True)  # Added field for documentation link
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     progress = db.relationship('Progress', backref='module', lazy=True)
 
 class Progress(db.Model):
@@ -137,7 +145,8 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    courses = Course.query.filter_by(is_active=True).all()
+    return render_template('index.html', courses=courses)
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -197,13 +206,15 @@ def dashboard():
                          admins=admins,
                          completed_modules=completed_modules)
 
-@app.route('/courses')
+@app.route('/course/<int:course_id>')
 @login_required
-def courses():
-    modules = Module.query.all()
+def course(course_id):
+    course = Course.query.get_or_404(course_id)
+    modules = Module.query.filter_by(course_id=course_id).order_by(Module.order).all()
     user_progress = Progress.query.filter_by(user_id=current_user.id).all()
     completed_modules = [p.module_id for p in user_progress if p.completed]
-    return render_template('courses.html', 
+    return render_template('course.html', 
+                         course=course,
                          modules=modules,
                          completed_modules=completed_modules)
 
