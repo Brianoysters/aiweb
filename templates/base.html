@@ -175,33 +175,36 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">SuBomap AI in Web GIS Academy</a>
+            <a class="navbar-brand" href="{{ url_for('index') }}">AI Course</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_details') }}">Contact Admin</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
-                    </li>
-                    {% if current_user.is_admin %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin</a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        </li>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>

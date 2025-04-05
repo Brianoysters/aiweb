@@ -211,6 +211,9 @@ def dashboard():
 @login_required
 def course(course_id):
     course = Course.query.get_or_404(course_id)
+    if not current_user.is_paid:
+        flash('Please complete your payment to access this course.', 'warning')
+        return redirect(url_for('dashboard'))
     modules = Module.query.filter_by(course_id=course_id).order_by(Module.order).all()
     user_progress = Progress.query.filter_by(user_id=current_user.id).all()
     completed_modules = [p.module_id for p in user_progress if p.completed]
@@ -492,6 +495,10 @@ def make_admin(user_id):
     db.session.commit()
     flash(f'{user.username} has been made an admin')
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin-details')
+def admin_details():
+    return render_template('admin_details.html')
 
 if __name__ == '__main__':
     with app.app_context():
