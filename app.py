@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,9 +12,15 @@ from config import Config
 from functools import wraps
 from sqlalchemy import text
 import time
+from io import BytesIO
 
 app = Flask(__name__)
-app.config.from_object(Config)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
@@ -176,9 +182,30 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    modules = Module.query.order_by(Module.order).all()
-    progress = Progress.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', modules=modules, progress=progress)
+    # Get all modules for the courses section
+    modules = Module.query.all()
+    
+    # Get all tutors for the tutors section
+    tutors = User.query.filter_by(is_tutor=True).all()
+    
+    # Get user's progress
+    user_progress = Progress.query.filter_by(user_id=current_user.id).all()
+    completed_modules = [p.module_id for p in user_progress if p.completed]
+    
+    return render_template('dashboard.html', 
+                         modules=modules,
+                         tutors=tutors,
+                         completed_modules=completed_modules)
+
+@app.route('/courses')
+@login_required
+def courses():
+    modules = Module.query.all()
+    user_progress = Progress.query.filter_by(user_id=current_user.id).all()
+    completed_modules = [p.module_id for p in user_progress if p.completed]
+    return render_template('courses.html', 
+                         modules=modules,
+                         completed_modules=completed_modules)
 
 @app.route('/module/<int:module_id>')
 @login_required
@@ -293,15 +320,44 @@ def submit_quiz():
 @app.route('/certificate')
 @login_required
 def certificate():
-    quiz_result = QuizResult.query.filter_by(
-        user_id=current_user.id,
-        passed=True
-    ).first()
-    
-    if not quiz_result:
+    if not current_user.is_paid:
+        flash('Please complete your payment to access the certificate.', 'warning')
         return redirect(url_for('dashboard'))
+    
+    try:
+        # Create certificate
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=letter)
         
-    return render_template('certificate.html')
+        # Add content
+        c.setFont("Helvetica-Bold", 24)
+        c.drawString(100, 700, "Certificate of Completion")
+        
+        c.setFont("Helvetica", 16)
+        c.drawString(100, 650, f"This is to certify that {current_user.username}")
+        c.drawString(100, 620, "has successfully completed the AI Course")
+        
+        c.setFont("Helvetica", 12)
+        c.drawString(100, 550, f"Date: {datetime.now().strftime('%B %d, %Y')}")
+        
+        # Save the PDF
+        c.save()
+        
+        # Get the value of the BytesIO buffer
+        pdf = buffer.getvalue()
+        buffer.close()
+        
+        # Create response
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=AI_Course_Certificate_{current_user.username}.pdf'
+        
+        return response
+        
+    except Exception as e:
+        app.logger.error(f"Certificate generation error: {str(e)}")
+        flash('Error generating certificate. Please try again later.', 'error')
+        return redirect(url_for('dashboard'))
 
 @app.route('/download_certificate')
 @login_required

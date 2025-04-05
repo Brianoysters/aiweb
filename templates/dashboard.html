@@ -1,47 +1,52 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Welcome, {{ current_user.username }}!</h2>
-
-{% if not current_user.is_paid %}
-<div class="alert alert-warning">
-    <h4>Payment Required</h4>
-    <p>Please complete your payment to access the course content. Contact the administrator for assistance.</p>
-</div>
-{% else %}
-<div class="row mt-4">
-    {% for module in modules %}
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Module {{ module.order }}: {{ module.title }}</h5>
-                {% set module_progress = progress|selectattr("module_id", "equalto", module.id)|first %}
-                
-                {% if module_progress and module_progress.completed %}
-                    <div class="alert alert-success">
-                        <i class="bi bi-check-circle"></i> Completed on {{ module_progress.completion_date.strftime('%B %d, %Y') }}
+<div class="container mt-4">
+    <h1 class="mb-4">Welcome, {{ current_user.username }}!</h1>
+    
+    <!-- Tutors Section -->
+    <section class="mb-5">
+        <h2>Our Tutors</h2>
+        <div class="row">
+            {% for tutor in tutors %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ tutor.username }}</h5>
+                        <p class="card-text">{{ tutor.bio or 'Expert tutor in AI and technology' }}</p>
+                        <a href="mailto:{{ tutor.email }}" class="btn btn-primary">Contact Tutor</a>
                     </div>
-                {% else %}
-                    {% if module.order == 1 or (modules|selectattr("order", "equalto", module.order - 1)|first).id|string in progress|map(attribute='module_id')|map('string')|list %}
-                        {% if module.order == 5 %}
-                            <a href="{{ url_for('quiz') }}" class="btn btn-primary">Start Final Assessment</a>
-                        {% else %}
-                            <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-primary">Start Module</a>
-                        {% endif %}
-                    {% else %}
-                        <button class="btn btn-secondary" disabled>Complete previous module first</button>
-                    {% endif %}
-                {% endif %}
+                </div>
             </div>
+            {% endfor %}
         </div>
-    </div>
-    {% endfor %}
-</div>
+    </section>
 
-{% if progress|length == modules|length - 1 %}
-<div class="text-center mt-4">
-    <a href="{{ url_for('quiz') }}" class="btn btn-lg btn-success">Take Final Quiz</a>
+    <!-- Quick Access to Courses -->
+    <section class="mb-5">
+        <h2>Your Courses</h2>
+        <div class="row">
+            {% for module in modules[:3] %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ module.title }}</h5>
+                        <p class="card-text">{{ module.description[:100] }}...</p>
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {% if module.id in completed_modules %}100{% else %}0{% endif %}%">
+                                {% if module.id in completed_modules %}Completed{% else %}Not Started{% endif %}
+                            </div>
+                        </div>
+                        <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-primary">Continue Learning</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('courses') }}" class="btn btn-outline-primary">View All Courses</a>
+        </div>
+    </section>
 </div>
-{% endif %}
-{% endif %}
 {% endblock %}

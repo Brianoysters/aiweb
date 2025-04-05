@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Available Courses</h1>
+    
+    <div class="row">
+        {% for module in modules %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ module.title }}</h5>
+                    <p class="card-text">{{ module.description }}</p>
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {% if module.id in completed_modules %}100{% else %}0{% endif %}%">
+                            {% if module.id in completed_modules %}Completed{% else %}Not Started{% endif %}
+                        </div>
+                    </div>
+                    <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-primary">
+                        {% if module.id in completed_modules %}
+                            Review Course
+                        {% else %}
+                            Start Course
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 
