@@ -311,7 +311,27 @@ def submit_quiz():
         flash('Please complete your payment to submit the quiz.', 'warning')
         return redirect(url_for('dashboard'))
     
-    score = float(request.form['score'])
+    # Define correct answers
+    correct_answers = {
+        'q1': 'a',  # CNN
+        'q2': 'b',  # Automated pattern recognition
+        'q3': 'c',  # LSTM
+        'q4': 'b',  # Simplify map features
+        'q5': 'c',  # Manual data entry
+        'q6': 'a',  # YOLO
+        'q7': 'a',  # WebGL
+        'q8': 'b',  # Automatically identify and classify
+        'q9': 'c',  # Proactive decision-making
+        'q10': 'b'  # Automatically identifies patterns
+    }
+    
+    # Calculate score
+    correct_count = 0
+    for question, correct_answer in correct_answers.items():
+        if request.form.get(question) == correct_answer:
+            correct_count += 1
+    
+    score = (correct_count / len(correct_answers)) * 100
     passed = score >= 80
     current_time = datetime.utcnow()
     
@@ -386,7 +406,11 @@ def download_certificate():
         return redirect(url_for('dashboard'))
     
     # Create a unique temporary file for the certificate
-    temp_file = os.path.join(os.environ.get('TEMP', 'temp'), f'certificate_{current_user.id}_{int(datetime.now().timestamp())}.pdf')
+    temp_dir = os.environ.get('TEMP', 'temp')
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+    
+    temp_file = os.path.join(temp_dir, f'certificate_{current_user.id}_{int(datetime.now().timestamp())}.pdf')
     
     try:
         # Create the PDF with letter size
@@ -459,6 +483,11 @@ def download_certificate():
         )
         
         return return_data
+        
+    except Exception as e:
+        app.logger.error(f"Certificate download error: {str(e)}")
+        flash('Error generating certificate. Please try again later.', 'error')
+        return redirect(url_for('dashboard'))
         
     finally:
         # Clean up the temporary file in a finally block to ensure it's always deleted
