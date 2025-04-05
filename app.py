@@ -231,11 +231,15 @@ def course(course_id):
 @app.route('/module/<int:module_id>')
 @login_required
 def module(module_id):
+    if not current_user.is_paid:
+        flash('Please complete your payment to access the modules.', 'warning')
+        return redirect(url_for('dashboard'))
+    
     module = Module.query.get_or_404(module_id)
     progress = Progress.query.filter_by(user_id=current_user.id, module_id=module_id).first()
     
-    # Check if previous module is completed
-    if module.order > 1:
+    # Only check previous module completion for non-quiz modules
+    if module.order < 5 and module.order > 1:
         prev_module = Module.query.filter_by(order=module.order-1).first()
         prev_progress = Progress.query.filter_by(
             user_id=current_user.id, 
@@ -251,6 +255,10 @@ def module(module_id):
 @app.route('/complete_module/<int:module_id>')
 @login_required
 def complete_module(module_id):
+    if not current_user.is_paid:
+        flash('Please complete your payment to access the modules.', 'warning')
+        return redirect(url_for('dashboard'))
+    
     progress = Progress.query.filter_by(
         user_id=current_user.id,
         module_id=module_id
@@ -299,6 +307,10 @@ def quiz():
 @app.route('/submit_quiz', methods=['POST'])
 @login_required
 def submit_quiz():
+    if not current_user.is_paid:
+        flash('Please complete your payment to submit the quiz.', 'warning')
+        return redirect(url_for('dashboard'))
+    
     score = float(request.form['score'])
     passed = score >= 80
     current_time = datetime.utcnow()
@@ -369,6 +381,10 @@ def certificate():
 @app.route('/download_certificate')
 @login_required
 def download_certificate():
+    if not current_user.is_paid:
+        flash('Please complete your payment to download the certificate.', 'warning')
+        return redirect(url_for('dashboard'))
+    
     # Create a unique temporary file for the certificate
     temp_file = os.path.join(os.environ.get('TEMP', 'temp'), f'certificate_{current_user.id}_{int(datetime.now().timestamp())}.pdf')
     
