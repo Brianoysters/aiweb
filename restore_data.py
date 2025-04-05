@@ -92,13 +92,114 @@ def restore_data():
                 Module(
                     order=5,
                     title="Final Assessment",
-                    content="""<h3>Final Assessment Instructions</h3>
-                    <p>You have completed all the modules! Now it's time to test your knowledge:</p>
-                    <ul>
-                        <li>The quiz consists of 10 multiple-choice questions</li>
-                        <li>You need to score 80% or higher to pass</li>
-                        <li>Upon passing, you can download your certificate</li>
-                    </ul>""",
+                    content="""<h3>Final Assessment Questions</h3>
+                    <p>Test your knowledge with these 10 multiple-choice questions. You need to score 80% or higher to pass.</p>
+                    
+                    <div class="quiz-questions">
+                        <div class="question mb-4">
+                            <h5>1. Which AI technique is most commonly used for satellite image classification in Web GIS?</h5>
+                            <ul>
+                                <li>A) Convolutional Neural Networks (CNN)</li>
+                                <li>B) Recurrent Neural Networks (RNN)</li>
+                                <li>C) Linear Regression</li>
+                                <li>D) Decision Trees</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>2. What is the primary advantage of using machine learning for spatial analysis in Web GIS?</h5>
+                            <ul>
+                                <li>A) Reduced server costs</li>
+                                <li>B) Automated pattern recognition in spatial data</li>
+                                <li>C) Faster map loading times</li>
+                                <li>D) Better user interface</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>3. Which deep learning architecture is best suited for temporal spatial data analysis?</h5>
+                            <ul>
+                                <li>A) Feedforward Neural Networks</li>
+                                <li>B) Support Vector Machines</li>
+                                <li>C) Long Short-Term Memory (LSTM)</li>
+                                <li>D) Random Forests</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>4. What is the role of AI in automated map generalization?</h5>
+                            <ul>
+                                <li>A) To increase map file size</li>
+                                <li>B) To simplify map features while preserving essential characteristics</li>
+                                <li>C) To add more details to maps</li>
+                                <li>D) To change map projections</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>5. Which of the following is NOT a common application of AI in Web GIS?</h5>
+                            <ul>
+                                <li>A) Traffic prediction</li>
+                                <li>B) Land use classification</li>
+                                <li>C) Manual data entry</li>
+                                <li>D) Change detection</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>6. What type of neural network is most effective for object detection in aerial imagery?</h5>
+                            <ul>
+                                <li>A) YOLO (You Only Look Once)</li>
+                                <li>B) Simple Perceptron</li>
+                                <li>C) Hopfield Network</li>
+                                <li>D) Boltzmann Machine</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>7. Which technology is essential for real-time spatial AI analysis in web applications?</h5>
+                            <ul>
+                                <li>A) WebGL</li>
+                                <li>B) Flash</li>
+                                <li>C) Java Applets</li>
+                                <li>D) Silverlight</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>8. What is the primary purpose of using AI for feature extraction in GIS?</h5>
+                            <ul>
+                                <li>A) To slow down processing</li>
+                                <li>B) To automatically identify and classify map elements</li>
+                                <li>C) To increase data storage requirements</li>
+                                <li>D) To manually verify data</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>9. Which of the following is a key benefit of implementing AI-powered predictive analytics in Web GIS?</h5>
+                            <ul>
+                                <li>A) Increased data entry requirements</li>
+                                <li>B) Manual processing of spatial patterns</li>
+                                <li>C) Proactive decision-making based on spatial trends</li>
+                                <li>D) Reduced accuracy in spatial analysis</li>
+                            </ul>
+                        </div>
+
+                        <div class="question mb-4">
+                            <h5>10. What role does machine learning play in web-based spatial clustering?</h5>
+                            <ul>
+                                <li>A) It requires manual intervention</li>
+                                <li>B) It automatically identifies spatial patterns and groups</li>
+                                <li>C) It slows down the clustering process</li>
+                                <li>D) It increases data redundancy</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <p><strong>Note:</strong> To take the quiz and get your certificate, click the "Take Quiz" button below.</p>
+                    </div>""",
                     course_id=ai_course.id,
                     doc_link="https://docs.google.com/document/d/5"
                 )
