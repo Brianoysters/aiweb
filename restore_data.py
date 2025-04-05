@@ -4,11 +4,18 @@ from werkzeug.security import generate_password_hash
 def restore_data():
     with app.app_context():
         try:
-            # Create admin user
+            # Delete existing data in correct order
+            Module.query.delete()
+            Course.query.delete()
+            User.query.delete()
+            db.session.commit()
+            print("Cleared existing data")
+
+            # Create admin user with pbkdf2:sha256 hashing
             admin = User(
                 username='admin',
                 email='admin@example.com',
-                password_hash=generate_password_hash('admin123'),
+                password_hash=generate_password_hash('admin123', method='pbkdf2:sha256'),
                 is_admin=True,
                 is_paid=True
             )
