@@ -22,30 +22,72 @@
         </div>
     </section>
 
-    <!-- Quick Access to Courses -->
+    <!-- AI Course Section -->
     <section class="mb-5">
-        <h2>Your Courses</h2>
+        <h2>AI Course</h2>
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Introduction to Artificial Intelligence</h5>
+                <p class="card-text">Master the fundamentals of AI through our comprehensive course covering key concepts, applications, and hands-on projects.</p>
+                <div class="row">
+                    {% for module in modules %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Module {{ module.order }}: {{ module.title }}</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {% if module.id in completed_modules %}100{% else %}0{% endif %}%">
+                                        {% if module.id in completed_modules %}Completed{% else %}Not Started{% endif %}
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-sm btn-primary">
+                                    {% if module.id in completed_modules %}
+                                        Review Module
+                                    {% else %}
+                                        Start Module
+                                    {% endif %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Other Courses Section -->
+    <section class="mb-5">
+        <h2>Other Courses</h2>
         <div class="row">
-            {% for module in modules[:3] %}
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">{{ module.title }}</h5>
-                        <p class="card-text">{{ module.content[:100]|striptags }}...</p>
-                        <div class="progress mb-3">
-                            <div class="progress-bar" role="progressbar" 
-                                 style="width: {% if module.id in completed_modules %}100{% else %}0{% endif %}%">
-                                {% if module.id in completed_modules %}Completed{% else %}Not Started{% endif %}
-                            </div>
-                        </div>
-                        <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-primary">Continue Learning</a>
+                        <h5 class="card-title">GIS Course</h5>
+                        <p class="card-text">Coming soon: Learn Geographic Information Systems and spatial analysis.</p>
+                        <button class="btn btn-secondary" disabled>Coming Soon</button>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
-        <div class="text-center mt-3">
-            <a href="{{ url_for('courses') }}" class="btn btn-outline-primary">View All Courses</a>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Remote Sensing</h5>
+                        <p class="card-text">Coming soon: Master satellite imagery analysis and interpretation.</p>
+                        <button class="btn btn-secondary" disabled>Coming Soon</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Data Science</h5>
+                        <p class="card-text">Coming soon: Comprehensive data analysis and visualization techniques.</p>
+                        <button class="btn btn-secondary" disabled>Coming Soon</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 </div>

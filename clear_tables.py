@@ -1,30 +1,37 @@
-from app import app, db
-from app import User, Module, Progress, QuizResult
+from app import app, db, User, Progress, QuizResult
+from werkzeug.security import generate_password_hash
 
 def clear_tables():
-    try:
-        with app.app_context():
-            # Clear tables in order to respect foreign key constraints
-            print("Clearing QuizResult table...")
-            QuizResult.query.delete()
-            
-            print("Clearing Progress table...")
+    with app.app_context():
+        try:
+            # Clear progress table
             Progress.query.delete()
             
-            print("Clearing Module table...")
-            Module.query.delete()
+            # Clear quiz results table
+            QuizResult.query.delete()
             
-            print("Clearing User table...")
+            # Clear user table
             User.query.delete()
             
-            # Commit the changes
-            db.session.commit()
-            print("\nAll tables have been cleared successfully!")
+            # Create admin user with pbkdf2:sha256 hashing method
+            admin_user = User(
+                username='admin',
+                email='admin@example.com',
+                password_hash=generate_password_hash('admin123', method='pbkdf2:sha256'),
+                is_admin=True,
+                is_paid=True
+            )
+            db.session.add(admin_user)
             
-    except Exception as e:
-        print(f"\nError clearing tables: {str(e)}")
-        db.session.rollback()
+            db.session.commit()
+            print("Successfully cleared all tables and created admin user")
+            print("Admin credentials:")
+            print("Username: admin")
+            print("Password: admin123")
+            
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            db.session.rollback()
 
-if __name__ == "__main__":
-    print("Starting database cleanup...")
+if __name__ == '__main__':
     clear_tables()
