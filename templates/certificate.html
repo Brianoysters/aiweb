@@ -1,38 +1,152 @@
 {% extends "base.html" %}
 
+{% block title %}Certificate - AI in Web GIS{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-body text-center">
-                    <h2 class="text-success mb-4">Congratulations! 🎉</h2>
-                    <p class="lead">You have successfully completed the AI in Web GIS Course with a score of {{ "%.1f"|format(score) }}%</p>
-                    <p class="text-muted">Completed on {{ completion_date.strftime('%B %d, %Y') }}</p>
-                    
-                    <div class="certificate-preview mt-4 mb-4 p-4 border rounded">
-                        <h3 class="mb-4">Certificate Preview</h3>
-                        <div class="text-center">
-                            <p class="mb-2">This is to certify that</p>
-                            <h4 class="mb-3">{{ current_user.username }}</h4>
-                            <p class="mb-2">has successfully completed the</p>
-                            <h4 class="mb-3">AI in Web GIS Course</h4>
-                            <p class="mb-2">with a score of {{ "%.1f"|format(score) }}%</p>
-                            <p class="mb-2">Completed on {{ completion_date.strftime('%B %d, %Y') }}</p>
+<main class="certificate-page" role="main">
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <h1 class="text-success mb-4">Congratulations! 🎉</h1>
+                        <p class="lead mb-3">You have successfully completed the AI in Web GIS Course</p>
+                        <p class="h4 mb-4">Score: {{ "%.1f"|format(score) }}%</p>
+                        <p class="text-muted mb-4">Completed on {{ completion_date.strftime('%B %d, %Y') }}</p>
+                        
+                        <div class="certificate-preview mt-4 mb-4 p-3 p-md-4 border rounded bg-light" role="region" aria-label="Certificate Preview">
+                            <h2 class="mb-3 mb-md-4">Certificate Preview</h2>
+                            <div class="text-center">
+                                <p class="mb-2 mb-md-3">This is to certify that</p>
+                                <h3 class="mb-2 mb-md-3">{{ current_user.username }}</h3>
+                                <p class="mb-2 mb-md-3">has successfully completed the</p>
+                                <h3 class="mb-2 mb-md-3">AI in Web GIS Course</h3>
+                                <p class="mb-2 mb-md-3">with a score of {{ "%.1f"|format(score) }}%</p>
+                                <p class="mb-2 mb-md-3">Completed on {{ completion_date.strftime('%B %d, %Y') }}</p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <a href="{{ url_for('download_certificate') }}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-download"></i> Download Certificate
-                        </a>
-                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg ms-2">
-                            <i class="fas fa-home"></i> Return to Dashboard
-                        </a>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                            <a href="{{ url_for('download_certificate') }}" 
+                               class="btn btn-primary btn-lg"
+                               role="button"
+                               aria-label="Download Certificate">
+                                <i class="fas fa-download" aria-hidden="true"></i>
+                                <span>Download Certificate</span>
+                            </a>
+                            <a href="{{ url_for('dashboard') }}" 
+                               class="btn btn-outline-secondary btn-lg ms-md-2 mt-2 mt-md-0"
+                               role="button"
+                               aria-label="Return to Dashboard">
+                                <i class="fas fa-home" aria-hidden="true"></i>
+                                <span>Return to Dashboard</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</main>
+
+<style>
+    .certificate-page {
+        min-height: calc(100vh - 160px);
+    }
+
+    .certificate-preview {
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .certificate-preview h2 {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .certificate-preview h3 {
+        color: var(--secondary-color);
+        font-size: 1.3rem;
+        font-weight: 500;
+    }
+
+    .certificate-preview p {
+        color: var(--text-color);
+        font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+        .certificate-preview {
+            padding: 1rem !important;
+        }
+        
+        .btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+        }
+        
+        .lead {
+            font-size: 1.1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 1rem !important;
+        }
+        
+        .certificate-preview {
+            margin: 1rem 0;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+
+        .certificate-preview p {
+            font-size: 1rem;
+        }
+    }
+
+    /* Print styles */
+    @media print {
+        .certificate-preview {
+            border: 2px solid var(--primary-color);
+            box-shadow: none;
+        }
+
+        .btn {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    // Add loading state to download button
+    document.querySelector('a[href="{{ url_for('download_certificate') }}"]').addEventListener('click', function(e) {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i><span>Downloading...</span>';
+        btn.disabled = true;
+        
+        // Reset button after 3 seconds if download hasn't started
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 3000);
+    });
+</script>
 {% endblock %}
