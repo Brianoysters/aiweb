@@ -72,9 +72,15 @@
             transition: color var(--transition-speed) ease;
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
+            position: relative;
         }
 
         .nav-link:hover, .nav-link:focus {
+            color: white !important;
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-link.active {
             color: white !important;
             background-color: rgba(255,255,255,0.1);
         }
@@ -192,6 +198,13 @@
                 padding-left: 15px;
                 padding-right: 15px;
             }
+
+            .navbar-collapse {
+                background-color: var(--primary-color);
+                padding: 1rem;
+                border-radius: var(--border-radius);
+                margin-top: 1rem;
+            }
         }
 
         @media (max-width: 576px) {
@@ -203,6 +216,10 @@
             
             .card-body {
                 padding: 1rem;
+            }
+
+            .navbar-toggler {
+                padding: 0.5rem;
             }
         }
 
@@ -257,6 +274,18 @@
                 border: 1px solid #ddd;
             }
         }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Navigation active state */
+        .nav-item.active .nav-link {
+            color: white !important;
+            background-color: rgba(255,255,255,0.1);
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -274,9 +303,21 @@
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('index') }}" aria-label="Courses">
+                                <i class="fas fa-book" aria-hidden="true"></i>
+                                <span>Courses</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('dashboard') }}" aria-label="Dashboard">
                                 <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
                                 <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('certificate') }}" aria-label="Certificate">
+                                <i class="fas fa-certificate" aria-hidden="true"></i>
+                                <span>Certificate</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -356,6 +397,18 @@
                 const loadTime = timing.loadEventEnd - timing.navigationStart;
                 console.log('Page load time:', loadTime, 'ms');
             }
+        });
+
+        // Add active class to current navigation item
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.parentElement.classList.add('active');
+                }
+            });
         });
     </script>
     
