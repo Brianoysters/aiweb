@@ -16,11 +16,7 @@
             {{ module.content|safe }}
         </div>
         
-        {% if module.order == 5 %}
-            <div class="text-center mt-4">
-                <a href="{{ url_for('quiz') }}" class="btn btn-primary btn-lg">Take Quiz</a>
-            </div>
-        {% elif not progress or not progress.completed %}
+        {% if not progress or not progress.completed %}
             <div class="text-center mt-4">
                 <a href="{{ url_for('complete_module', module_id=module.id) }}" class="btn btn-success btn-lg">
                     Mark as Complete
