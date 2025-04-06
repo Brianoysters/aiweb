@@ -1,18 +1,21 @@
 from app import app, db, Module
+from datetime import datetime
 
 def update_quiz_content():
-    with app.app_context():
-        try:
-            # Get the quiz module
+    try:
+        with app.app_context():
+            # Get the quiz module (module 5)
             quiz_module = Module.query.filter_by(order=5).first()
             if not quiz_module:
                 print("Quiz module not found")
                 return
             
             # Update the quiz content
-            quiz_module.content = """<h3>Final Assessment Questions</h3>
-                    <p>Test your knowledge with these 10 multiple-choice questions. You need to score 80% or higher to pass.</p>
-                    
+            quiz_module.content = """<div class="container">
+                <h3 class="mb-4">Final Assessment</h3>
+                <p class="mb-4">Test your knowledge with these 10 multiple-choice questions. You need to score 80% or higher to pass.</p>
+                
+                <form action="/submit_quiz" method="post">
                     <div class="quiz-questions">
                         <div class="question mb-4 p-3 border rounded bg-light" role="group" aria-labelledby="question1">
                             <h5 id="question1">1. Which AI technique is most commonly used for satellite image classification in Web GIS?</h5>
@@ -213,14 +216,19 @@ def update_quiz_content():
                                 <label class="form-check-label" for="q10d">It increases data redundancy</label>
                             </div>
                         </div>
-                    </div>"""
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary">Submit Quiz</button>
+                    </div>
+                </form>
+            </div>"""
             
             db.session.commit()
             print("Quiz content updated successfully")
             
-        except Exception as e:
-            print(f"Error updating quiz content: {str(e)}")
-            db.session.rollback()
+    except Exception as e:
+        print(f"Error updating quiz content: {str(e)}")
+        db.session.rollback()
 
-if __name__ == "__main__":
-    update_quiz_content() 
+if __name__ == '__main__':
+    update_quiz_content()

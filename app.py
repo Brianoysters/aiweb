@@ -250,7 +250,50 @@ def module(module_id):
             flash('Please complete the previous module first')
             return redirect(url_for('dashboard'))
     
-    return render_template('module.html', module=module, progress=progress, doc_link=module.doc_link)
+    # If this is module 5 (quiz module), check quiz status
+    if module.order == 5:
+        passed_result = QuizResult.query.filter_by(
+            user_id=current_user.id,
+            passed=True
+        ).first()
+        
+        if passed_result:
+            return render_template('module.html', 
+                                module=module,
+                                progress=progress,
+                                already_passed=True,
+                                score=passed_result.score,
+                                completion_date=passed_result.completion_date)
+        
+        # Get user's last quiz attempt
+        last_attempt = QuizResult.query.filter_by(user_id=current_user.id).order_by(QuizResult.attempt_number.desc()).first()
+        
+        if last_attempt:
+            # Check if user has attempts remaining for today
+            if last_attempt.attempt_number >= 2:
+                # Check if 24 hours have passed since the first attempt of the day
+                first_attempt_today = QuizResult.query.filter(
+                    QuizResult.user_id == current_user.id,
+                    QuizResult.completion_date >= datetime.utcnow().date()
+                ).order_by(QuizResult.attempt_number).first()
+                
+                if first_attempt_today:
+                    time_since_first_attempt = datetime.utcnow() - first_attempt_today.completion_date
+                    if time_since_first_attempt.total_seconds() < 86400:  # 24 hours in seconds
+                        next_attempt_time = first_attempt_today.completion_date + timedelta(days=1)
+                        return render_template('module.html', 
+                                            module=module,
+                                            progress=progress,
+                                            next_attempt_available=next_attempt_time)
+            
+            # Check if cooldown period has passed
+            if last_attempt.next_attempt_available and datetime.utcnow() < last_attempt.next_attempt_available:
+                return render_template('module.html', 
+                                    module=module,
+                                    progress=progress,
+                                    next_attempt_available=last_attempt.next_attempt_available)
+    
+    return render_template('module.html', module=module, progress=progress)
 
 @app.route('/complete_module/<int:module_id>')
 @login_required
@@ -281,6 +324,12 @@ def complete_module(module_id):
 def quiz():
     if not current_user.is_paid:
         flash('Please complete your payment to access the quiz.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    # Get the quiz module (module 5)
+    quiz_module = Module.query.filter_by(order=5).first()
+    if not quiz_module:
+        flash('Quiz module not found.', 'error')
         return redirect(url_for('dashboard'))
     
     # Check if user has already passed the quiz
@@ -317,7 +366,7 @@ def quiz():
         if last_attempt.next_attempt_available and datetime.utcnow() < last_attempt.next_attempt_available:
             return render_template('quiz.html', next_attempt_available=last_attempt.next_attempt_available)
     
-    return render_template('quiz.html')
+    return render_template('quiz.html', quiz_content=quiz_module.content)
 
 @app.route('/submit_quiz', methods=['POST'])
 @login_required
