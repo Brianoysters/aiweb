@@ -8,6 +8,89 @@
         <p>Please complete your payment to access the course content, quiz, and certificate.</p>
         <a href="#" class="btn btn-primary">Complete Payment</a>
     </div>
+
+    <!-- Course Brochure Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Course Brochure</h3>
+                </div>
+                <div class="card-body">
+                    <!-- AI in Web GIS Course -->
+                    <div class="course-brochure mb-4">
+                        <h4 class="text-primary">AI in Web GIS Course</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Duration:</strong> 8 weeks</p>
+                                <p><strong>Mode:</strong> Online & Physical (Hybrid)</p>
+                                <p><strong>Course Fee:</strong> KES 15,000</p>
+                                <p><strong>Course Description:</strong></p>
+                                <p>Master the integration of Artificial Intelligence with Geographic Information Systems. Learn to develop intelligent mapping solutions and automate spatial analysis.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Course Tutors</h5>
+                                <div class="tutor-info mb-3">
+                                    <p><strong>Eng. Brian Otieno</strong></p>
+                                    <p><i class="fas fa-envelope"></i> <a href="mailto:sirotienootienobrian@gmail.com">sirotienootienobrian@gmail.com</a></p>
+                                    <p><i class="fas fa-phone"></i> +254 798 941 230</p>
+                                </div>
+                                <div class="tutor-info">
+                                    <p><strong>Boaz Odhiambo Nyakongo</strong></p>
+                                    <p class="text-muted">GIS Tutor</p>
+                                    <p><i class="fas fa-envelope"></i> <a href="mailto:boaznyakongo99@gmail.com">boaznyakongo99@gmail.com</a></p>
+                                    <p><i class="fas fa-phone"></i> +254 797 073 761</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Courses -->
+                    <div class="upcoming-courses">
+                        <h4 class="text-primary">Upcoming Courses</h4>
+                        <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">GIS Fundamentals</h5>
+                                        <p><strong>Duration:</strong> 6 weeks</p>
+                                        <p><strong>Mode:</strong> Online & Physical</p>
+                                        <p><strong>Fee:</strong> KES 12,000</p>
+                                        <p class="card-text">Learn the basics of Geographic Information Systems and spatial analysis.</p>
+                                        <button class="btn btn-secondary" disabled>Coming Soon</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Remote Sensing</h5>
+                                        <p><strong>Duration:</strong> 8 weeks</p>
+                                        <p><strong>Mode:</strong> Online & Physical</p>
+                                        <p><strong>Fee:</strong> KES 18,000</p>
+                                        <p class="card-text">Master satellite imagery analysis and interpretation techniques.</p>
+                                        <button class="btn btn-secondary" disabled>Coming Soon</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Data Science</h5>
+                                        <p><strong>Duration:</strong> 10 weeks</p>
+                                        <p><strong>Mode:</strong> Online & Physical</p>
+                                        <p><strong>Fee:</strong> KES 20,000</p>
+                                        <p class="card-text">Comprehensive data analysis and visualization techniques.</p>
+                                        <button class="btn btn-secondary" disabled>Coming Soon</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     <div class="row">
@@ -60,4 +143,44 @@
         </div>
     </div>
 </div>
+
+<style>
+    .course-brochure {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+
+    .tutor-info {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .tutor-info i {
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+    }
+
+    .upcoming-courses .card {
+        transition: transform 0.3s ease;
+    }
+
+    .upcoming-courses .card:hover {
+        transform: translateY(-5px);
+    }
+
+    @media (max-width: 768px) {
+        .course-brochure {
+            padding: 1rem;
+        }
+        
+        .tutor-info {
+            padding: 0.75rem;
+        }
+    }
+</style>
 {% endblock %}

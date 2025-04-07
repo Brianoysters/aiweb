@@ -468,13 +468,14 @@ def download_certificate():
         width, height = letter
         
         # Add decorative border with gradient
-        c.setStrokeColorRGB(0.2, 0.4, 0.6)  # Dark blue color
+        c.setStrokeColorRGB(0.0, 0.2, 0.4)  # Royal blue color
         c.setLineWidth(2)
         c.rect(30, 30, width-60, height-60)
         
         # Add corner decorations
         corner_size = 20
         c.setLineWidth(1)
+        c.setStrokeColorRGB(0.8, 0.6, 0.0)  # Maroon color
         # Top-left corner
         c.line(30, height-30, 30+corner_size, height-30)
         c.line(30, height-30, 30, height-30-corner_size)
@@ -494,35 +495,36 @@ def download_certificate():
         c.setFont("Helvetica-Bold", 40)
         c.translate(width/2, height/2)
         c.rotate(45)
-        c.drawCentredString(0, 0, "SUBOMAP AFRICA GEOSYSTEMS")
+        c.drawCentredString(0, 0, "SUBOMAP AFRICA ACADEMY")
         c.restoreState()
         
         # Add company name with decorative underline
         c.setFont("Helvetica-Bold", 28)
-        c.setFillColorRGB(0.2, 0.4, 0.6)  # Dark blue color
-        c.drawCentredString(width/2, height - 150, "SUBOMAP AFRICA GEOSYSTEMS")
-        c.setStrokeColorRGB(0.2, 0.4, 0.6)
+        c.setFillColorRGB(0.0, 0.2, 0.4)  # Royal blue color
+        c.drawCentredString(width/2, height - 150, "SUBOMAP AFRICA ACADEMY")
+        c.setStrokeColorRGB(0.8, 0.6, 0.0)  # Maroon color
         c.setLineWidth(2)
         c.line(width/2 - 150, height - 160, width/2 + 150, height - 160)
         
         # Add certificate title with decorative elements
         c.setFont("Helvetica-Bold", 36)
-        c.setFillColorRGB(0, 0, 0)  # Black color
+        c.setFillColorRGB(0.0, 0.2, 0.4)  # Royal blue color
         c.drawCentredString(width/2, height - 250, "Certificate of Completion")
         
         # Add decorative line under title
-        c.setStrokeColorRGB(0.2, 0.4, 0.6)
+        c.setStrokeColorRGB(0.8, 0.6, 0.0)  # Maroon color
         c.setLineWidth(1)
         c.line(width/2 - 200, height - 260, width/2 + 200, height - 260)
         
         # Add certificate text with improved spacing
         c.setFont("Helvetica", 18)
+        c.setFillColorRGB(0.0, 0.2, 0.4)  # Royal blue color
         c.drawCentredString(width/2, height - 300, "This is to certify that")
         
         # Add user name with decorative underline
         c.setFont("Helvetica-Bold", 28)
         c.drawCentredString(width/2, height - 350, current_user.username)
-        c.setStrokeColorRGB(0.2, 0.4, 0.6)
+        c.setStrokeColorRGB(0.8, 0.6, 0.0)  # Maroon color
         c.setLineWidth(1)
         c.line(width/2 - 150, height - 360, width/2 + 150, height - 360)
         
@@ -530,24 +532,30 @@ def download_certificate():
         c.setFont("Helvetica", 18)
         c.drawCentredString(width/2, height - 400, "has successfully completed the")
         c.drawCentredString(width/2, height - 430, "AI in Web GIS Course")
+        c.drawCentredString(width/2, height - 460, "at SUBOMAP AFRICA ACADEMY")
+        
+        # Add enrollment and completion dates with decorative background
+        c.setFillColorRGB(1.0, 0.8, 0.0)  # Yellow background
+        c.rect(width/2 - 150, height - 520, 300, 60, fill=1)
+        c.setFont("Helvetica", 14)
+        c.setFillColorRGB(0.0, 0.2, 0.4)  # Royal blue text
+        
+        # Get enrollment date (user creation date)
+        enrollment_date = current_user.date_created.strftime("%B %d, %Y")
+        completion_date = latest_result.completion_date.strftime("%B %d, %Y")
+        
+        c.drawCentredString(width/2, height - 500, f"Enrolled: {enrollment_date}")
+        c.drawCentredString(width/2, height - 480, f"Completed: {completion_date}")
         
         # Add score with decorative background
-        c.setFillColorRGB(0.95, 0.95, 0.95)
-        c.rect(width/2 - 100, height - 480, 200, 40, fill=1)
+        c.setFillColorRGB(1.0, 0.8, 0.0)  # Yellow background
+        c.rect(width/2 - 100, height - 580, 200, 40, fill=1)
         c.setFont("Helvetica-Bold", 16)
-        c.setFillColorRGB(0.2, 0.4, 0.6)
-        c.drawCentredString(width/2, height - 460, f"Score: {latest_result.score:.1f}%")
-        
-        # Add date with decorative background
-        c.setFillColorRGB(0.95, 0.95, 0.95)
-        c.rect(width/2 - 150, height - 540, 300, 40, fill=1)
-        c.setFont("Helvetica", 16)
-        c.setFillColorRGB(0.2, 0.4, 0.6)
-        date_str = latest_result.completion_date.strftime("%B %d, %Y")
-        c.drawCentredString(width/2, height - 520, f"Completed on {date_str}")
+        c.setFillColorRGB(0.0, 0.2, 0.4)  # Royal blue text
+        c.drawCentredString(width/2, height - 560, f"Score: {latest_result.score:.1f}%")
         
         # Add signature section with decorative background
-        c.setFillColorRGB(0.95, 0.95, 0.95)
+        c.setFillColorRGB(0.0, 0.2, 0.4)  # Royal blue background
         c.rect(50, 100, width-100, 100, fill=1)
         
         # Add signature lines
@@ -556,9 +564,10 @@ def download_certificate():
         
         # Course Director signature
         c.setLineWidth(1)
-        c.setStrokeColorRGB(0.2, 0.4, 0.6)
+        c.setStrokeColorRGB(1.0, 0.8, 0.0)  # Yellow color
         c.line(width/4 - line_width/2, y_position, width/4 + line_width/2, y_position)
         c.setFont("Helvetica-Bold", 12)
+        c.setFillColorRGB(1.0, 1.0, 1.0)  # White text
         c.drawCentredString(width/4, y_position - 20, "Course Director")
         c.setFont("Helvetica", 10)
         c.drawCentredString(width/4, y_position - 35, "Eng. Brian Otieno")
@@ -571,10 +580,10 @@ def download_certificate():
         c.drawCentredString(3*width/4, y_position - 35, "Boaz Odhiambo Nyakongo")
         
         # Add certificate number with decorative background
-        c.setFillColorRGB(0.95, 0.95, 0.95)
+        c.setFillColorRGB(0.8, 0.6, 0.0)  # Maroon background
         c.rect(50, 50, width-100, 30, fill=1)
         c.setFont("Helvetica", 10)
-        c.setFillColorRGB(0.2, 0.4, 0.6)
+        c.setFillColorRGB(1.0, 1.0, 1.0)  # White text
         cert_number = f"CERT-{current_user.id:04d}-{latest_result.id:04d}"
         c.drawCentredString(width/2, 65, f"Certificate Number: {cert_number}")
         
@@ -587,7 +596,7 @@ def download_certificate():
         # Create response
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'attachment; filename=AI_WebGIS_Certificate_{current_user.username}.pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=SUBOMAP_AFRICA_ACADEMY_AI_WebGIS_Certificate_{current_user.username}.pdf'
         
         return response
         
