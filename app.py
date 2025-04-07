@@ -540,9 +540,11 @@ def download_certificate():
         c.setFont("Helvetica", 14)
         c.setFillColorRGB(0.0, 0.2, 0.4)  # Royal blue text
         
-        # Get enrollment date (user creation date)
-        enrollment_date = current_user.date_created.strftime("%B %d, %Y")
+        # Get completion date from quiz result
         completion_date = latest_result.completion_date.strftime("%B %d, %Y")
+        
+        # For enrollment date, we'll use the completion date minus 8 weeks (course duration)
+        enrollment_date = (latest_result.completion_date - timedelta(weeks=8)).strftime("%B %d, %Y")
         
         c.drawCentredString(width/2, height - 500, f"Enrolled: {enrollment_date}")
         c.drawCentredString(width/2, height - 480, f"Completed: {completion_date}")
