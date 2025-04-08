@@ -155,6 +155,16 @@ class QuizResult(db.Model):
     completion_date = db.Column(db.DateTime, nullable=True)
     next_attempt_available = db.Column(db.DateTime, nullable=True)
 
+class QuizQuestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question_text = db.Column(db.Text, nullable=False)
+    option_a = db.Column(db.String(500), nullable=False)
+    option_b = db.Column(db.String(500), nullable=False)
+    option_c = db.Column(db.String(500), nullable=False)
+    correct_answer = db.Column(db.String(1), nullable=False)  # 'a', 'b', or 'c'
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Association table for user completed modules
 user_completed_modules = db.Table('user_completed_modules',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
@@ -395,8 +405,10 @@ def quiz():
             return render_template('quiz.html', 
                                 next_attempt_available=last_attempt.next_attempt_available)
     
-    # Render the quiz content from the database
-    return render_template('quiz.html', quiz_content=quiz_module.content)
+    # Get quiz questions from database and randomize them
+    questions = QuizQuestion.query.filter_by(module_id=quiz_module.id).order_by(db.func.random()).all()
+    
+    return render_template('quiz.html', questions=questions)
 
 @app.route('/submit_quiz', methods=['POST'])
 @login_required
@@ -405,27 +417,23 @@ def submit_quiz():
         flash('Please complete your payment to submit the quiz.', 'warning')
         return redirect(url_for('dashboard'))
     
-    # Define correct answers
-    correct_answers = {
-        'q1': 'a',  # CNN
-        'q2': 'b',  # Automated pattern recognition
-        'q3': 'c',  # LSTM
-        'q4': 'b',  # Simplify map features
-        'q5': 'c',  # Manual data entry
-        'q6': 'a',  # YOLO
-        'q7': 'a',  # WebGL
-        'q8': 'b',  # Automatically identify and classify
-        'q9': 'c',  # Proactive decision-making
-        'q10': 'b'  # Automatically identifies patterns
-    }
+    # Get the quiz module
+    quiz_module = Module.query.filter_by(order=5).first()
+    if not quiz_module:
+        flash('Quiz module not found.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get all questions for this module
+    questions = QuizQuestion.query.filter_by(module_id=quiz_module.id).all()
     
     # Calculate score
     correct_count = 0
-    for question, correct_answer in correct_answers.items():
-        if request.form.get(question) == correct_answer:
+    for question in questions:
+        user_answer = request.form.get(f'q{question.id}')
+        if user_answer == question.correct_answer:
             correct_count += 1
     
-    score = (correct_count / len(correct_answers)) * 100
+    score = (correct_count / len(questions)) * 100
     passed = score >= 80
     current_time = datetime.utcnow()
     
@@ -714,6 +722,7 @@ def init_db():
             conn.execute(text("DROP TABLE IF EXISTS user_enrolled_courses"))
             conn.execute(text("DROP TABLE IF EXISTS enrollment"))
             conn.execute(text("DROP TABLE IF EXISTS progress"))
+            conn.execute(text("DROP TABLE IF EXISTS quiz_question"))
             conn.execute(text("DROP TABLE IF EXISTS module"))
             conn.execute(text("DROP TABLE IF EXISTS course"))
             conn.execute(text("DROP TABLE IF EXISTS user"))
@@ -751,7 +760,7 @@ def init_db():
             db.session.add(course)
             db.session.commit()
             print("Created sample course")
-        
+            
             # Create modules for the course
             modules = [
                 Module(
@@ -778,6 +787,7 @@ def init_db():
                         <li>Environmental monitoring and prediction</li>
                       </ul>
                       """,
+                    course_id=course.id,
                     doc_link="https://docs.google.com/document/d/1qajlv9m0qQ6mLHen5IqfnS-KY75TIc8x9NbKLwAzO0s/edit?usp=sharing"
                 ),
                 Module(
@@ -803,6 +813,7 @@ def init_db():
                         <li>Neural Networks</li>
                       </ul>
                       """,
+                    course_id=course.id,
                     doc_link="https://docs.google.com/document/d/1XKCEm18sHRooGkCC90IhcQvdWGCNGdKK2px4iOHCn9Q/edit?usp=sharing"
                 ),
                 Module(
@@ -828,6 +839,7 @@ def init_db():
                         <li>Network Analysis</li>
                       </ul>
                       """,
+                    course_id=course.id,
                     doc_link="https://docs.google.com/document/d/1u3mq0dvNmsIhZOKk4yLJWpvlbLT2n6L4VkoweE1rWWQ/edit?usp=sharing"
                 ),
                 Module(
@@ -853,6 +865,7 @@ def init_db():
                         <li>Deployment and Monitoring</li>
                       </ul>
                       """,
+                    course_id=course.id,
                     doc_link="https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"
                 ),
                 Module(
@@ -861,171 +874,8 @@ def init_db():
                     content="""
                     <h2>Course Quiz</h2>
                     <p>Test your knowledge of AI and ML in GIS with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>
-
-                    <form id="quizForm" method="POST" action="{{ url_for('submit_quiz', course_id=course.id) }}">
-                        <div class="quiz-question">
-                            <h3>Question 1: What is the primary goal of Artificial Intelligence?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q1" value="a" required>
-                                <label class="form-check-label">To create machines that can think and learn like humans</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q1" value="b">
-                                <label class="form-check-label">To replace human workers with machines</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q1" value="c">
-                                <label class="form-check-label">To make computers faster than humans</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 2: Which of these is NOT a type of Machine Learning?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q2" value="a" required>
-                                <label class="form-check-label">Supervised Learning</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q2" value="b">
-                                <label class="form-check-label">Unsupervised Learning</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q2" value="c">
-                                <label class="form-check-label">Manual Learning</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 3: What is the main advantage of using AI in GIS?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q3" value="a" required>
-                                <label class="form-check-label">Automated analysis of large spatial datasets</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q3" value="b">
-                                <label class="form-check-label">Making maps more colorful</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q3" value="c">
-                                <label class="form-check-label">Reducing the need for GPS devices</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 4: Which algorithm is commonly used for image classification in GIS?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q4" value="a" required>
-                                <label class="form-check-label">Convolutional Neural Networks</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q4" value="b">
-                                <label class="form-check-label">Linear Regression</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q4" value="c">
-                                <label class="form-check-label">K-means Clustering</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 5: What is the purpose of validation in machine learning?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q5" value="a" required>
-                                <label class="form-check-label">To ensure the model performs well on unseen data</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q5" value="b">
-                                <label class="form-check-label">To make the model run faster</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q5" value="c">
-                                <label class="form-check-label">To reduce the size of the dataset</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 6: Which of these is an example of supervised learning?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q6" value="a" required>
-                                <label class="form-check-label">Predicting house prices based on features</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q6" value="b">
-                                <label class="form-check-label">Grouping similar customers together</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q6" value="c">
-                                <label class="form-check-label">Finding patterns in unlabeled data</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 7: What is the role of neural networks in GIS?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q7" value="a" required>
-                                <label class="form-check-label">To process complex spatial patterns and relationships</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q7" value="b">
-                                <label class="form-check-label">To store geographic data</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q7" value="c">
-                                <label class="form-check-label">To create 3D models of buildings</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 8: Which of these is a common application of AI in urban planning?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q8" value="a" required>
-                                <label class="form-check-label">Predicting traffic patterns and congestion</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q8" value="b">
-                                <label class="form-check-label">Designing building facades</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q8" value="c">
-                                <label class="form-check-label">Calculating property taxes</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 9: What is the main challenge in implementing AI in GIS?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q9" value="a" required>
-                                <label class="form-check-label">Data quality and availability</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q9" value="b">
-                                <label class="form-check-label">Computer processing speed</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q9" value="c">
-                                <label class="form-check-label">Internet connection speed</label>
-                            </div>
-                        </div>
-
-                        <div class="quiz-question">
-                            <h3>Question 10: How does AI contribute to environmental monitoring?</h3>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q10" value="a" required>
-                                <label class="form-check-label">By analyzing satellite imagery for changes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q10" value="b">
-                                <label class="form-check-label">By replacing environmental sensors</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="q10" value="c">
-                                <label class="form-check-label">By controlling weather patterns</label>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary mt-3">Submit Quiz</button>
-                    </form>
                     """,
+                    course_id=course.id,
                     doc_link="https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"
                 )
             ]
@@ -1034,6 +884,96 @@ def init_db():
                 db.session.add(module)
             db.session.commit()
             print("Created all modules")
+
+            # Create quiz questions for the final module
+            quiz_module = Module.query.filter_by(order=5).first()
+            quiz_questions = [
+                QuizQuestion(
+                    question_text="What is the primary goal of Artificial Intelligence?",
+                    option_a="To create machines that can think and learn like humans",
+                    option_b="To replace human workers with machines",
+                    option_c="To make computers faster than humans",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which of these is NOT a type of Machine Learning?",
+                    option_a="Supervised Learning",
+                    option_b="Unsupervised Learning",
+                    option_c="Manual Learning",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What is the main advantage of using AI in GIS?",
+                    option_a="Automated analysis of large spatial datasets",
+                    option_b="Making maps more colorful",
+                    option_c="Reducing the need for GPS devices",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which algorithm is commonly used for image classification in GIS?",
+                    option_a="Convolutional Neural Networks",
+                    option_b="Linear Regression",
+                    option_c="K-means Clustering",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What is the purpose of validation in machine learning?",
+                    option_a="To ensure the model performs well on unseen data",
+                    option_b="To make the model run faster",
+                    option_c="To reduce the size of the dataset",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which of these is an example of supervised learning?",
+                    option_a="Predicting house prices based on features",
+                    option_b="Grouping similar customers together",
+                    option_c="Finding patterns in unlabeled data",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What is the role of neural networks in GIS?",
+                    option_a="To process complex spatial patterns and relationships",
+                    option_b="To store geographic data",
+                    option_c="To create 3D models of buildings",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which of these is a common application of AI in urban planning?",
+                    option_a="Predicting traffic patterns and congestion",
+                    option_b="Designing building facades",
+                    option_c="Calculating property taxes",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What is the main challenge in implementing AI in GIS?",
+                    option_a="Data quality and availability",
+                    option_b="Computer processing speed",
+                    option_c="Internet connection speed",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="How does AI contribute to environmental monitoring?",
+                    option_a="By analyzing satellite imagery for changes",
+                    option_b="By replacing environmental sensors",
+                    option_c="By controlling weather patterns",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                )
+            ]
+            
+            for question in quiz_questions:
+                db.session.add(question)
+            db.session.commit()
+            print("Created quiz questions")
 
 # Initialize database
 init_db()

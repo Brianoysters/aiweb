@@ -3,21 +3,42 @@
 {% block title %}Quiz - AI in Web GIS{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container mt-4">
     {% if already_passed %}
-        <div class="alert alert-success">
-            <h4 class="alert-heading">Congratulations!</h4>
-            <p>You have already passed this quiz with a score of {{ score }}% on {{ completion_date.strftime('%B %d, %Y') }}.</p>
-        </div>
+    <div class="alert alert-success">
+        <h4>Congratulations!</h4>
+        <p>You have already passed this quiz with a score of {{ score }}% on {{ completion_date.strftime('%B %d, %Y') }}.</p>
+    </div>
     {% elif next_attempt_available %}
-        <div class="alert alert-warning">
-            <h4 class="alert-heading">Quiz Attempts Exhausted</h4>
-            <p>You have used all your attempts for today. Next attempt available on {{ next_attempt_available.strftime('%B %d, %Y at %I:%M %p') }}.</p>
-        </div>
+    <div class="alert alert-warning">
+        <h4>Quiz Attempt Limit Reached</h4>
+        <p>You have reached the maximum number of attempts for today. You can try again after {{ next_attempt_available.strftime('%B %d, %Y at %I:%M %p') }}.</p>
+    </div>
     {% else %}
-        <div class="quiz-content">
-            {{ quiz_content|safe }}
+    <h2>Course Quiz</h2>
+    <p>Test your knowledge of AI and ML in GIS with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>
+
+    <form id="quizForm" method="POST" action="{{ url_for('submit_quiz') }}">
+        {% for question in questions %}
+        <div class="quiz-question mb-4">
+            <h3>Question {{ loop.index }}: {{ question.question_text }}</h3>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="q{{ question.id }}" value="a" required>
+                <label class="form-check-label">{{ question.option_a }}</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="q{{ question.id }}" value="b">
+                <label class="form-check-label">{{ question.option_b }}</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="q{{ question.id }}" value="c">
+                <label class="form-check-label">{{ question.option_c }}</label>
+            </div>
         </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary mt-3">Submit Quiz</button>
+    </form>
     {% endif %}
 </div>
 
