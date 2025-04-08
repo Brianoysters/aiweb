@@ -1,238 +1,53 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    {% if not current_user.is_paid %}
-    <div class="alert alert-warning">
-        <h4 class="alert-heading">Payment Required</h4>
-        <p>Please complete your payment to access the full course content.</p>
-    </div>
-
-    <div class="brochure-section">
-        <h3>Course Brochure</h3>
-        
-        <div class="course-details">
-            <h4>AI in Web GIS Course</h4>
-            <div class="detail-item">
-                <strong>Duration:</strong> 8 weeks
-            </div>
-            <div class="detail-item">
-                <strong>Mode:</strong> Online & Physical (Hybrid)
-            </div>
-            <div class="detail-item">
-                <strong>Course Fee:</strong> KES 15,000
-            </div>
-            <div class="detail-item">
-                <strong>Course Description:</strong> Integration of AI with GIS for advanced spatial analysis and decision-making.
-            </div>
-        </div>
-
-        <div class="tutor-info">
-            <h4>Course Tutors</h4>
-            <div class="tutor-card">
-                <h5>Eng. Brian Otieno</h5>
-                <p><strong>Position:</strong> Course Director</p>
-                <p><strong>Email:</strong> sirotienootienobrian@gmail.com</p>
-                <p><strong>Phone:</strong> +254 798 941 230</p>
-            </div>
-            <div class="tutor-card">
-                <h5>Boaz Odhiambo Nyakongo</h5>
-                <p><strong>Position:</strong> GIS Tutor</p>
-                <p><strong>Email:</strong> boaznyakongo99@gmail.com</p>
-                <p><strong>Phone:</strong> +254 797 073 761</p>
-            </div>
-        </div>
-
-        <div class="upcoming-courses">
-            <h4>Upcoming Courses</h4>
-            <div class="upcoming-course-item">
-                <h5>GIS Fundamentals <span class="coming-soon-badge">Coming Soon</span></h5>
-                <p><strong>Duration:</strong> 6 weeks</p>
-                <p><strong>Mode:</strong> Online & Physical</p>
-                <p><strong>Fee:</strong> KES 12,000</p>
-            </div>
-            <div class="upcoming-course-item">
-                <h5>Remote Sensing <span class="coming-soon-badge">Coming Soon</span></h5>
-                <p><strong>Duration:</strong> 8 weeks</p>
-                <p><strong>Mode:</strong> Online & Physical</p>
-                <p><strong>Fee:</strong> KES 15,000</p>
-            </div>
-            <div class="upcoming-course-item">
-                <h5>Data Science <span class="coming-soon-badge">Coming Soon</span></h5>
-                <p><strong>Duration:</strong> 10 weeks</p>
-                <p><strong>Mode:</strong> Online & Physical</p>
-                <p><strong>Fee:</strong> KES 18,000</p>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <h2 class="mb-4">Your Courses</h2>
+<div class="container py-4">
     <div class="row">
-        {% for module in modules %}
-        <div class="col-md-6 col-lg-4">
-            <div class="course-card">
-                <div class="card-header">
-                    Module {{ module.order }}: {{ module.title }}
+        <div class="col-md-8">
+            <h2 class="mb-4">Available Courses</h2>
+            <div class="row g-4">
+                {% for course in courses %}
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title h5">{{ course.title }}</h3>
+                            <p class="card-text">{{ course.description }}</p>
+                            <div class="course-meta mb-3">
+                                <span class="badge bg-info me-2">{{ course.duration }}</span>
+                                <span class="badge bg-info me-2">{{ course.mode }}</span>
+                                <span class="badge bg-info">{{ course.fee }}</span>
+                            </div>
+                            {% if course.id in enrolled_courses %}
+                                <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-primary w-100">
+                                    Continue Learning
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-outline-primary w-100">
+                                    View Course
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
                 <div class="card-body">
-                    <p class="card-text">{{ module.content[:150] }}...</p>
-                    {% if module.id in completed_modules %}
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" style="width: 100%">Completed</div>
+                    <h3 class="card-title h5 mb-3">Course Instructors</h3>
+                    {% for admin in admins %}
+                    <div class="instructor mb-3">
+                        <h4 class="h6 mb-1">{{ admin.username }}</h4>
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-envelope"></i> {{ admin.email }}
+                        </p>
                     </div>
-                    {% else %}
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" style="width: 0%">Not Started</div>
-                    </div>
-                    {% endif %}
-                    <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-primary">View Module</a>
+                    {% endfor %}
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
 </div>
-
-<style>
-    .course-card {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        margin-bottom: 20px;
-        overflow: hidden;
-    }
-
-    .course-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .course-card .card-header {
-        background: linear-gradient(135deg, #00264d 0%, #004080 100%);
-        color: white;
-        border-bottom: none;
-        padding: 15px 20px;
-        font-weight: bold;
-    }
-
-    .course-card .card-body {
-        padding: 20px;
-    }
-
-    .course-card .progress {
-        height: 10px;
-        border-radius: 5px;
-        background-color: #e9ecef;
-    }
-
-    .course-card .progress-bar {
-        background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
-    }
-
-    .brochure-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .brochure-section h3 {
-        color: #00264d;
-        border-bottom: 2px solid #800000;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-    }
-
-    .course-details {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .course-details h4 {
-        color: #00264d;
-        margin-bottom: 15px;
-    }
-
-    .course-details .detail-item {
-        margin-bottom: 10px;
-        padding: 10px;
-        background: #f8f9fa;
-        border-radius: 5px;
-        border-left: 4px solid #ffd700;
-    }
-
-    .tutor-info {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .tutor-info h4 {
-        color: #00264d;
-        margin-bottom: 15px;
-    }
-
-    .tutor-card {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 4px solid #800000;
-    }
-
-    .tutor-card h5 {
-        color: #00264d;
-        margin-bottom: 10px;
-    }
-
-    .tutor-card p {
-        margin-bottom: 5px;
-        color: #495057;
-    }
-
-    .upcoming-courses {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    .upcoming-courses h4 {
-        color: #00264d;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #ffd700;
-        padding-bottom: 10px;
-    }
-
-    .upcoming-course-item {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 4px solid #00264d;
-    }
-
-    .upcoming-course-item h5 {
-        color: #00264d;
-        margin-bottom: 10px;
-    }
-
-    .coming-soon-badge {
-        background: #800000;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.8em;
-        margin-left: 10px;
-    }
-</style>
 {% endblock %}

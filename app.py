@@ -184,7 +184,7 @@ def signup():
         if User.query.filter_by(email=email).first():
             flash('Email already registered')
             return redirect(url_for('signup'))
-        
+            
         user = User(
             username=username,
             email=email,
@@ -219,26 +219,19 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get the AI course
-    ai_course = Course.query.filter_by(title="Introduction to Artificial Intelligence").first()
-    if not ai_course:
-        flash('AI course not found', 'error')
-        return redirect(url_for('index'))
-    
-    # Get modules for the AI course
-    modules = Module.query.filter_by(course_id=ai_course.id).order_by(Module.order).all()
+    # Get all available courses
+    courses = Course.query.filter_by(is_active=True).all()
     
     # Get all admin users for the admin section
     admins = User.query.filter_by(is_admin=True).all()
     
-    # Get user's progress
-    user_progress = Progress.query.filter_by(user_id=current_user.id).all()
-    completed_modules = [p.module_id for p in user_progress if p.completed]
+    # Get user's enrolled courses
+    enrolled_courses = [c.id for c in current_user.enrolled_courses]
     
     return render_template('dashboard.html', 
-                         modules=modules,
+                         courses=courses,
                          admins=admins,
-                         completed_modules=completed_modules)
+                         enrolled_courses=enrolled_courses)
 
 @app.route('/course/<int:course_id>')
 @login_required
@@ -394,12 +387,15 @@ def quiz():
                 time_since_first_attempt = datetime.utcnow() - first_attempt_today.completion_date
                 if time_since_first_attempt.total_seconds() < 86400:  # 24 hours in seconds
                     next_attempt_time = first_attempt_today.completion_date + timedelta(days=1)
-                    return render_template('quiz.html', next_attempt_available=next_attempt_time)
+                    return render_template('quiz.html', 
+                                        next_attempt_available=next_attempt_time)
         
         # Check if cooldown period has passed
         if last_attempt.next_attempt_available and datetime.utcnow() < last_attempt.next_attempt_available:
-            return render_template('quiz.html', next_attempt_available=last_attempt.next_attempt_available)
+            return render_template('quiz.html', 
+                                next_attempt_available=last_attempt.next_attempt_available)
     
+    # Render the quiz content from the database
     return render_template('quiz.html', quiz_content=quiz_module.content)
 
 @app.route('/submit_quiz', methods=['POST'])
@@ -472,7 +468,7 @@ def certificate():
     if not latest_result:
         flash('You need to pass the quiz to get a certificate.', 'warning')
         return redirect(url_for('dashboard'))
-    
+        
     # First show the score and certificate preview
     return render_template('certificate.html', 
                          score=latest_result.score,
@@ -703,11 +699,11 @@ def enroll_course(course_id):
         current_user.enrolled_courses.append(course)
         db.session.commit()
         flash('Successfully enrolled in the course!', 'success')
-    except Exception as e:
+        except Exception as e:
         db.session.rollback()
         flash('Error enrolling in the course. Please try again.', 'error')
         app.logger.error(f"Error enrolling user {current_user.id} in course {course_id}: {str(e)}")
-    
+
     return redirect(url_for('course', course_id=course_id))
 
 def init_db():
@@ -753,72 +749,284 @@ def init_db():
                 is_active=True
             )
             db.session.add(course)
-            db.session.commit()
+                db.session.commit()
             print("Created sample course")
-
+        
             # Create modules for the course
             modules = [
                 Module(
                     order=1,
-                    title="Introduction to AI and ML in GIS",
-                    content="""<h3>Overview of AI and ML in GIS</h3>
-                    <p>This module covers:</p>
+                    title="Introduction to AI and ML",
+                    content="""
+                    <h2>What is Artificial Intelligence?</h2>
+                    <p>Artificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think and learn like humans. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.</p>
+
+                    <h2>Key Concepts in AI</h2>
                     <ul>
-                        <li>AI and ML concepts in GIS context</li>
-                        <li>Role of AI and ML in GIS applications</li>
-                        <li>Data types and sources in GIS (Raster, Vector, Remote Sensing)</li>
-                        <li>Geospatial data processing fundamentals</li>
-                        <li>Ethical considerations and challenges</li>
-                    </ul>""",
-                    course_id=course.id
+                        <li>Machine Learning: A subset of AI that enables systems to learn and improve from experience</li>
+                        <li>Deep Learning: A type of machine learning that uses neural networks with many layers</li>
+                        <li>Natural Language Processing: The ability of computers to understand and process human language</li>
+                        <li>Computer Vision: The ability of computers to interpret and understand visual information</li>
+                      </ul>
+
+                    <h2>Applications of AI in GIS</h2>
+                    <p>AI is transforming GIS in numerous ways:</p>
+                    <ul>
+                        <li>Automated feature extraction from satellite imagery</li>
+                        <li>Predictive modeling for urban planning</li>
+                        <li>Traffic pattern analysis and optimization</li>
+                        <li>Environmental monitoring and prediction</li>
+                      </ul>
+                      """,
+                    doc_link="https://docs.google.com/document/d/1qajlv9m0qQ6mLHen5IqfnS-KY75TIc8x9NbKLwAzO0s/edit?usp=sharing"
                 ),
                 Module(
                     order=2,
-                    title="Machine Learning for Spatial Analysis",
-                    content="""<h3>Key Topics</h3>
+                    title="Machine Learning Fundamentals",
+                    content="""
+                    <h2>Understanding Machine Learning</h2>
+                    <p>Machine Learning is a method of data analysis that automates analytical model building. It is a branch of artificial intelligence based on the idea that systems can learn from data, identify patterns and make decisions with minimal human intervention.</p>
+
+                    <h2>Types of Machine Learning</h2>
                     <ul>
-                        <li>Supervised vs. Unsupervised Learning in GIS</li>
-                        <li>Feature Engineering for Spatial Data</li>
-                        <li>Spatial Clustering and Classification Techniques</li>
-                        <li>Regression Models for Geospatial Prediction</li>
-                    </ul>""",
-                    course_id=course.id
+                        <li>Supervised Learning: Learning from labeled data</li>
+                        <li>Unsupervised Learning: Finding patterns in unlabeled data</li>
+                        <li>Reinforcement Learning: Learning through trial and error</li>
+                      </ul>
+
+                    <h2>Common ML Algorithms</h2>
+                    <ul>
+                        <li>Linear Regression</li>
+                        <li>Decision Trees</li>
+                        <li>Random Forests</li>
+                        <li>Support Vector Machines</li>
+                        <li>Neural Networks</li>
+                      </ul>
+                      """,
+                    doc_link="https://docs.google.com/document/d/1XKCEm18sHRooGkCC90IhcQvdWGCNGdKK2px4iOHCn9Q/edit?usp=sharing"
                 ),
                 Module(
                     order=3,
-                    title="AI and Deep Learning for GIS Applications",
-                    content="""<h3>Core Concepts</h3>
+                    title="AI in Spatial Analysis",
+                    content="""
+                    <h2>Spatial Analysis with AI</h2>
+                    <p>AI enhances spatial analysis by providing more sophisticated tools for pattern recognition, prediction, and decision-making in geographic contexts.</p>
+
+                    <h2>Key Applications</h2>
                     <ul>
-                        <li>Neural Networks for Geospatial Data</li>
-                        <li>Object Detection in Remote Sensing</li>
-                        <li>Semantic Segmentation for Land Cover Classification</li>
-                        <li>Deep Learning Models (CNNs, RNNs) for GIS</li>
-                    </ul>""",
-                    course_id=course.id
+                        <li>Land Use Classification</li>
+                        <li>Population Density Prediction</li>
+                        <li>Environmental Change Detection</li>
+                        <li>Infrastructure Planning</li>
+                      </ul>
+
+                    <h2>Tools and Techniques</h2>
+                    <ul>
+                        <li>Geospatial Machine Learning Libraries</li>
+                        <li>Remote Sensing Analysis</li>
+                        <li>Spatial Statistics</li>
+                        <li>Network Analysis</li>
+                      </ul>
+                      """,
+                    doc_link="https://docs.google.com/document/d/1u3mq0dvNmsIhZOKk4yLJWpvlbLT2n6L4VkoweE1rWWQ/edit?usp=sharing"
                 ),
                 Module(
                     order=4,
-                    title="Practical Applications of AI and ML in GIS",
-                    content="""<h3>Applications</h3>
+                    title="Practical Applications",
+                    content="""
+                    <h2>Real-World Applications</h2>
+                    <p>This module explores practical applications of AI and ML in GIS through case studies and examples.</p>
+
+                    <h2>Case Studies</h2>
                     <ul>
-                        <li>AI for Water Body Detection in Satellite Images</li>
-                        <li>Route Optimization Using AI and GIS</li>
-                        <li>Real-time Geospatial Data Processing</li>
-                        <li>AI-Powered Urban Planning</li>
-                    </ul>""",
-                    course_id=course.id
+                        <li>Urban Planning and Smart Cities</li>
+                        <li>Environmental Monitoring</li>
+                        <li>Disaster Management</li>
+                        <li>Transportation Planning</li>
+                      </ul>
+
+                    <h2>Implementation Strategies</h2>
+                    <ul>
+                        <li>Data Collection and Preparation</li>
+                        <li>Model Selection and Training</li>
+                        <li>Validation and Testing</li>
+                        <li>Deployment and Monitoring</li>
+                      </ul>
+                      """,
+                    doc_link="https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"
                 ),
                 Module(
                     order=5,
-                    title="Final Assessment",
-                    content="""<h3>Final Assessment Instructions</h3>
-                    <p>You have completed all the modules! Now it's time to test your knowledge:</p>
-                    <ul>
-                        <li>The quiz consists of 10 multiple-choice questions</li>
-                        <li>You need to score 80% or higher to pass</li>
-                        <li>Upon passing, you can download your certificate</li>
-                    </ul>""",
-                    course_id=course.id
+                    title="Final Quiz",
+                    content="""
+                    <h2>Course Quiz</h2>
+                    <p>Test your knowledge of AI and ML in GIS with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>
+
+                    <form id="quizForm" method="POST" action="{{ url_for('submit_quiz', course_id=course.id) }}">
+                        <div class="quiz-question">
+                            <h3>Question 1: What is the primary goal of Artificial Intelligence?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q1" value="a" required>
+                                <label class="form-check-label">To create machines that can think and learn like humans</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q1" value="b">
+                                <label class="form-check-label">To replace human workers with machines</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q1" value="c">
+                                <label class="form-check-label">To make computers faster than humans</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 2: Which of these is NOT a type of Machine Learning?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q2" value="a" required>
+                                <label class="form-check-label">Supervised Learning</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q2" value="b">
+                                <label class="form-check-label">Unsupervised Learning</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q2" value="c">
+                                <label class="form-check-label">Manual Learning</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 3: What is the main advantage of using AI in GIS?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q3" value="a" required>
+                                <label class="form-check-label">Automated analysis of large spatial datasets</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q3" value="b">
+                                <label class="form-check-label">Making maps more colorful</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q3" value="c">
+                                <label class="form-check-label">Reducing the need for GPS devices</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 4: Which algorithm is commonly used for image classification in GIS?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q4" value="a" required>
+                                <label class="form-check-label">Convolutional Neural Networks</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q4" value="b">
+                                <label class="form-check-label">Linear Regression</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q4" value="c">
+                                <label class="form-check-label">K-means Clustering</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 5: What is the purpose of validation in machine learning?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q5" value="a" required>
+                                <label class="form-check-label">To ensure the model performs well on unseen data</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q5" value="b">
+                                <label class="form-check-label">To make the model run faster</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q5" value="c">
+                                <label class="form-check-label">To reduce the size of the dataset</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 6: Which of these is an example of supervised learning?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q6" value="a" required>
+                                <label class="form-check-label">Predicting house prices based on features</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q6" value="b">
+                                <label class="form-check-label">Grouping similar customers together</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q6" value="c">
+                                <label class="form-check-label">Finding patterns in unlabeled data</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 7: What is the role of neural networks in GIS?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q7" value="a" required>
+                                <label class="form-check-label">To process complex spatial patterns and relationships</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q7" value="b">
+                                <label class="form-check-label">To store geographic data</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q7" value="c">
+                                <label class="form-check-label">To create 3D models of buildings</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 8: Which of these is a common application of AI in urban planning?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q8" value="a" required>
+                                <label class="form-check-label">Predicting traffic patterns and congestion</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q8" value="b">
+                                <label class="form-check-label">Designing building facades</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q8" value="c">
+                                <label class="form-check-label">Calculating property taxes</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 9: What is the main challenge in implementing AI in GIS?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q9" value="a" required>
+                                <label class="form-check-label">Data quality and availability</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q9" value="b">
+                                <label class="form-check-label">Computer processing speed</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q9" value="c">
+                                <label class="form-check-label">Internet connection speed</label>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question">
+                            <h3>Question 10: How does AI contribute to environmental monitoring?</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q10" value="a" required>
+                                <label class="form-check-label">By analyzing satellite imagery for changes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q10" value="b">
+                                <label class="form-check-label">By replacing environmental sensors</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q10" value="c">
+                                <label class="form-check-label">By controlling weather patterns</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary mt-3">Submit Quiz</button>
+                    </form>
+                    """,
+                    doc_link="https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"
                 )
             ]
             
@@ -829,6 +1037,6 @@ def init_db():
 
 # Initialize database
 init_db()
-
+            
 if __name__ == '__main__':
     app.run(debug=True)

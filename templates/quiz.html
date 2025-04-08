@@ -3,220 +3,53 @@
 {% block title %}Quiz - AI in Web GIS{% endblock %}
 
 {% block content %}
-<main class="quiz-page" role="main">
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-10 col-lg-8">
-                <div class="card shadow-sm">
-                    <div class="card-body p-3 p-md-4">
-                        {% if already_passed %}
-                            <div class="text-center mb-4">
-                                <h1 class="text-success mb-3">Congratulations! 🎉</h1>
-                                <p class="lead mb-3">You have already passed the quiz with a score of {{ "%.1f"|format(score) }}%</p>
-                                <p class="text-muted mb-4">Completed on {{ completion_date.strftime('%B %d, %Y') }}</p>
-                                
-                                <div class="alert alert-info" role="alert">
-                                    <i class="fas fa-info-circle" aria-hidden="true"></i>
-                                    <span>You can still review the course materials at your own pace.</span>
-                                </div>
-                                
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-                                    <a href="{{ url_for('dashboard') }}" 
-                                       class="btn btn-primary btn-lg"
-                                       role="button"
-                                       aria-label="Return to Dashboard">
-                                        <i class="fas fa-home" aria-hidden="true"></i>
-                                        <span>Return to Dashboard</span>
-                                    </a>
-                                    <a href="{{ url_for('certificate') }}" 
-                                       class="btn btn-outline-secondary btn-lg ms-md-2 mt-2 mt-md-0"
-                                       role="button"
-                                       aria-label="View Certificate">
-                                        <i class="fas fa-certificate" aria-hidden="true"></i>
-                                        <span>View Certificate</span>
-                                    </a>
-                                </div>
-                            </div>
-                        {% elif next_attempt_available %}
-                            <div class="text-center">
-                                <h1 class="text-warning mb-3">Quiz Attempts Exhausted</h1>
-                                <p class="lead mb-3">You have reached the maximum number of attempts for today.</p>
-                                <p class="text-muted mb-4">Next attempt available: {{ next_attempt_available.strftime('%B %d, %Y at %I:%M %p') }}</p>
-                                
-                                <div class="alert alert-info" role="alert">
-                                    <i class="fas fa-info-circle" aria-hidden="true"></i>
-                                    <span>You can review the course materials while waiting for your next attempt.</span>
-                                </div>
-                                
-                                <a href="{{ url_for('dashboard') }}" 
-                                   class="btn btn-primary btn-lg mt-4"
-                                   role="button"
-                                   aria-label="Return to Dashboard">
-                                    <i class="fas fa-home" aria-hidden="true"></i>
-                                    <span>Return to Dashboard</span>
-                                </a>
-                            </div>
-                        {% else %}
-                            <h1 class="text-center mb-4">SUBOMAP AFRICA ACADEMY Quiz</h1>
-                            <p class="text-center text-muted mb-4">Please answer all questions. You need 80% to pass.</p>
-                            
-                            <form method="POST" action="{{ url_for('submit_quiz') }}" id="quizForm" novalidate>
-                                <div class="quiz-questions" role="group" aria-label="Quiz Questions">
-                                    {{ quiz_content|safe }}
-                                </div>
-                                
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-                                    <button type="submit" 
-                                            class="btn btn-primary btn-lg"
-                                            role="button"
-                                            aria-label="Submit Quiz">
-                                        <i class="fas fa-paper-plane" aria-hidden="true"></i>
-                                        <span>Submit Quiz</span>
-                                    </button>
-                                    <a href="{{ url_for('dashboard') }}" 
-                                       class="btn btn-outline-secondary btn-lg ms-md-2 mt-2 mt-md-0"
-                                       role="button"
-                                       aria-label="Return to Dashboard">
-                                        <i class="fas fa-home" aria-hidden="true"></i>
-                                        <span>Return to Dashboard</span>
-                                    </a>
-                                </div>
-                            </form>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+<div class="container py-4">
+    {% if already_passed %}
+        <div class="alert alert-success">
+            <h4 class="alert-heading">Congratulations!</h4>
+            <p>You have already passed this quiz with a score of {{ score }}% on {{ completion_date.strftime('%B %d, %Y') }}.</p>
         </div>
-    </div>
-</main>
+    {% elif next_attempt_available %}
+        <div class="alert alert-warning">
+            <h4 class="alert-heading">Quiz Attempts Exhausted</h4>
+            <p>You have used all your attempts for today. Next attempt available on {{ next_attempt_available.strftime('%B %d, %Y at %I:%M %p') }}.</p>
+        </div>
+    {% else %}
+        <div class="quiz-content">
+            {{ quiz_content|safe }}
+        </div>
+    {% endif %}
+</div>
 
 <style>
-    .quiz-page {
-        min-height: calc(100vh - 160px);
-    }
+.quiz-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
 
-    .question {
-        background-color: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        border-radius: var(--border-radius);
-    }
+.quiz-content h3 {
+    color: #2c3e50;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
 
-    .question h5 {
-        color: var(--primary-color);
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
+.quiz-content p {
+    margin-bottom: 1rem;
+}
 
-    .question ul {
-        list-style-type: none;
-        padding-left: 0;
-    }
+.quiz-content .question {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
 
-    .question li {
-        margin-bottom: 0.5rem;
-        padding: 0.5rem;
-        border-radius: var(--border-radius);
-        transition: background-color var(--transition-speed) ease;
-    }
+.quiz-content .form-check {
+    margin-bottom: 0.5rem;
+}
 
-    .question li:hover {
-        background-color: var(--light-bg);
-    }
-
-    .form-check-input {
-        margin-right: 0.5rem;
-    }
-
-    @media (max-width: 768px) {
-        .quiz-questions .question {
-            padding: 1rem !important;
-        }
-        
-        .btn-lg {
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-        }
-        
-        h1 {
-            font-size: 1.8rem;
-        }
-        
-        .question h5 {
-            font-size: 1.1rem;
-        }
-        
-        .lead {
-            font-size: 1.1rem;
-        }
-    }
-    
-    @media (max-width: 576px) {
-        .card-body {
-            padding: 1rem !important;
-        }
-        
-        .question {
-            margin-bottom: 1rem !important;
-        }
-        
-        .btn {
-            width: 100%;
-        }
-        
-        .question li {
-            font-size: 0.95rem;
-        }
-    }
-
-    /* Print styles */
-    @media print {
-        .btn {
-            display: none;
-        }
-
-        .question {
-            break-inside: avoid;
-            page-break-inside: avoid;
-        }
-    }
+.quiz-content .btn-primary {
+    margin-top: 1.5rem;
+}
 </style>
-
-<script>
-    // Form validation
-    document.getElementById('quizForm').addEventListener('submit', function(e) {
-        const questions = document.querySelectorAll('.question');
-        let allAnswered = true;
-        
-        questions.forEach(question => {
-            const radios = question.querySelectorAll('input[type="radio"]');
-            const answered = Array.from(radios).some(radio => radio.checked);
-            
-            if (!answered) {
-                allAnswered = false;
-                question.classList.add('border-danger');
-            } else {
-                question.classList.remove('border-danger');
-            }
-        });
-        
-        if (!allAnswered) {
-            e.preventDefault();
-            alert('Please answer all questions before submitting.');
-        }
-    });
-
-    // Add focus styles
-    document.querySelectorAll('.form-check-input').forEach(input => {
-        input.addEventListener('focus', function() {
-            this.closest('.question').classList.add('focus-visible');
-        });
-        
-        input.addEventListener('blur', function() {
-            this.closest('.question').classList.remove('focus-visible');
-        });
-    });
-</script>
 {% endblock %}

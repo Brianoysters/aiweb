@@ -13,6 +13,15 @@
                 <div class="module-html-content">
                     {{ module.content|safe }}
                 </div>
+                
+                {% if module.doc_link %}
+                <div class="additional-content mt-4">
+                    <h4>Additional Resources</h4>
+                    <a href="{{ module.doc_link }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-text"></i> View Detailed Content
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -69,6 +78,12 @@
 
 .module-html-content li {
     margin-bottom: 0.5rem;
+}
+
+.additional-content {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
 }
 </style>
 {% endblock %}
