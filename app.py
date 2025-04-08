@@ -699,7 +699,7 @@ def enroll_course(course_id):
         current_user.enrolled_courses.append(course)
         db.session.commit()
         flash('Successfully enrolled in the course!', 'success')
-        except Exception as e:
+    except Exception as e:
         db.session.rollback()
         flash('Error enrolling in the course. Please try again.', 'error')
         app.logger.error(f"Error enrolling user {current_user.id} in course {course_id}: {str(e)}")
@@ -749,7 +749,7 @@ def init_db():
                 is_active=True
             )
             db.session.add(course)
-                db.session.commit()
+            db.session.commit()
             print("Created sample course")
         
             # Create modules for the course
