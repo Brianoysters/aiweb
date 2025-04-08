@@ -219,8 +219,14 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get all modules for the courses section
-    modules = Module.query.all()
+    # Get the AI course
+    ai_course = Course.query.filter_by(title="Introduction to Artificial Intelligence").first()
+    if not ai_course:
+        flash('AI course not found', 'error')
+        return redirect(url_for('index'))
+    
+    # Get modules for the AI course
+    modules = Module.query.filter_by(course_id=ai_course.id).order_by(Module.order).all()
     
     # Get all admin users for the admin section
     admins = User.query.filter_by(is_admin=True).all()
@@ -258,7 +264,10 @@ def module(module_id):
     
     module = Module.query.get_or_404(module_id)
     course = module.course
-    completed_modules = [m.id for m in current_user.completed_modules]
+    
+    # Get completed modules from Progress model
+    user_progress = Progress.query.filter_by(user_id=current_user.id).all()
+    completed_modules = [p.module_id for p in user_progress if p.completed]
     
     # Only check previous module completion for non-quiz modules
     if module.order < 5 and module.order > 1:

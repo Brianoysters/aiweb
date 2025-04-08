@@ -1,265 +1,74 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="module-container">
-    <div class="module-header">
-        <h1>{{ module.title }}</h1>
-        <div class="module-meta">
-            <span class="module-order">Module {{ module.order }}</span>
-            {% if module.id in completed_modules %}
-            <span class="completion-badge">Completed</span>
-            {% endif %}
-        </div>
+<div class="container py-4">
+    <div class="module-header text-center mb-4">
+        <h1 class="display-4">{{ module.title }}</h1>
+        <p class="lead">Module {{ module.order }} of {{ course.title }}</p>
     </div>
 
     <div class="module-content">
-        {{ module.content|safe }}
+        <div class="card">
+            <div class="card-body">
+                <div class="module-html-content">
+                    {{ module.content|safe }}
+                </div>
+            </div>
+        </div>
     </div>
 
     {% if module.order == 5 %}
-    <div class="quiz-section">
-        {% if not current_user.is_paid %}
-        <div class="payment-required">
-            <h3>Complete Payment to Access Quiz</h3>
-            <p>Please complete your payment to take the final assessment.</p>
-        </div>
-        {% else %}
-            {% if module.id in completed_modules %}
-            <div class="quiz-completed">
-                <h3>Quiz Completed</h3>
-                <p>You have successfully completed this quiz.</p>
-                <a href="{{ url_for('certificate') }}" class="btn-certificate">
-                    <i class="bi bi-award"></i>
-                    View Certificate
-                </a>
+        {% if already_passed %}
+            <div class="alert alert-success mt-4">
+                <h4 class="alert-heading">Congratulations!</h4>
+                <p>You have already passed this quiz with a score of {{ score }}% on {{ completion_date.strftime('%B %d, %Y') }}.</p>
             </div>
-            {% else %}
-                {% if current_user.last_quiz_attempt %}
-                    {% set time_since_last_attempt = (now - current_user.last_quiz_attempt).total_seconds() %}
-                    {% if time_since_last_attempt < 3600 %}
-                        {% set remaining_time = (3600 - time_since_last_attempt)|int %}
-                        <div class="quiz-cooldown">
-                            <h3>Quiz Cooldown</h3>
-                            <p>Please wait {{ remaining_time//60 }} minutes before attempting the quiz again.</p>
-                            <div class="cooldown-timer">
-                                <div class="timer-progress" style="width: {{ (time_since_last_attempt/3600)*100 }}%"></div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="quiz-available">
-                            <h3>Final Assessment</h3>
-                            <p>Test your knowledge with this comprehensive quiz.</p>
-                            <a href="{{ url_for('quiz') }}" class="btn-quiz">
-                                <i class="bi bi-pencil-square"></i>
-                                Start Quiz
-                            </a>
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <div class="quiz-available">
-                        <h3>Final Assessment</h3>
-                        <p>Test your knowledge with this comprehensive quiz.</p>
-                        <a href="{{ url_for('quiz') }}" class="btn-quiz">
-                            <i class="bi bi-pencil-square"></i>
-                            Start Quiz
-                        </a>
-                    </div>
-                {% endif %}
-            {% endif %}
+        {% elif next_attempt_available %}
+            <div class="alert alert-warning mt-4">
+                <h4 class="alert-heading">Quiz Attempts Exhausted</h4>
+                <p>You have used all your attempts for today. Next attempt available on {{ next_attempt_available.strftime('%B %d, %Y at %I:%M %p') }}.</p>
+            </div>
+        {% else %}
+            <div class="text-center mt-4">
+                <a href="{{ url_for('quiz') }}" class="btn btn-primary btn-lg">Start Quiz</a>
+            </div>
         {% endif %}
-    </div>
+    {% else %}
+        <div class="text-center mt-4">
+            <a href="{{ url_for('complete_module', module_id=module.id) }}" class="btn btn-primary btn-lg">
+                {% if module.id in completed_modules %}
+                    Mark as Incomplete
+                {% else %}
+                    Mark as Complete
+                {% endif %}
+            </a>
+        </div>
     {% endif %}
 </div>
 
 <style>
-    .module-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 30px 20px;
-    }
+.module-html-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
 
-    .module-header {
-        margin-bottom: 40px;
-        padding-bottom: 20px;
-        border-bottom: 2px solid var(--royal-blue);
-    }
+.module-html-content h3 {
+    color: #2c3e50;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
 
-    .module-header h1 {
-        color: var(--royal-blue);
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-    }
+.module-html-content p {
+    margin-bottom: 1rem;
+}
 
-    .module-meta {
-        display: flex;
-        gap: 15px;
-        align-items: center;
-    }
+.module-html-content ul {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+}
 
-    .module-order {
-        background: var(--royal-blue);
-        color: white;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-    }
-
-    .completion-badge {
-        background: var(--gold);
-        color: var(--royal-blue);
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: bold;
-    }
-
-    .module-content {
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        margin-bottom: 40px;
-    }
-
-    .module-content h3 {
-        color: var(--royal-blue);
-        margin: 25px 0 15px;
-        font-size: 1.8rem;
-    }
-
-    .module-content p {
-        color: var(--text-dark);
-        line-height: 1.8;
-        margin-bottom: 15px;
-    }
-
-    .module-content ul, .module-content ol {
-        margin: 15px 0;
-        padding-left: 20px;
-    }
-
-    .module-content li {
-        color: var(--text-dark);
-        line-height: 1.8;
-        margin-bottom: 8px;
-    }
-
-    .module-content code {
-        background: var(--gray-light);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-family: monospace;
-    }
-
-    .module-content pre {
-        background: var(--gray-light);
-        padding: 15px;
-        border-radius: 8px;
-        overflow-x: auto;
-        margin: 15px 0;
-    }
-
-    .quiz-section {
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        text-align: center;
-    }
-
-    .quiz-section h3 {
-        color: var(--royal-blue);
-        margin-bottom: 15px;
-    }
-
-    .quiz-section p {
-        color: var(--text-light);
-        margin-bottom: 20px;
-    }
-
-    .payment-required {
-        background: linear-gradient(135deg, var(--royal-blue) 0%, var(--royal-blue-light) 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-    }
-
-    .quiz-completed {
-        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-        color: var(--royal-blue);
-        padding: 30px;
-        border-radius: 15px;
-    }
-
-    .quiz-cooldown {
-        background: var(--gray-light);
-        padding: 30px;
-        border-radius: 15px;
-    }
-
-    .quiz-available {
-        background: linear-gradient(135deg, var(--royal-blue) 0%, var(--royal-blue-light) 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-    }
-
-    .cooldown-timer {
-        height: 8px;
-        background: var(--gray);
-        border-radius: 4px;
-        overflow: hidden;
-        margin: 20px 0;
-    }
-
-    .timer-progress {
-        height: 100%;
-        background: var(--gold);
-        transition: width 1s linear;
-    }
-
-    .btn-quiz, .btn-certificate {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 25px;
-        border-radius: 25px;
-        font-weight: bold;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-
-    .btn-quiz {
-        background: var(--gold);
-        color: var(--royal-blue);
-    }
-
-    .btn-certificate {
-        background: var(--royal-blue);
-        color: white;
-    }
-
-    .btn-quiz:hover, .btn-certificate:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    @media (max-width: 768px) {
-        .module-container {
-            padding: 20px 15px;
-        }
-
-        .module-header h1 {
-            font-size: 2rem;
-        }
-
-        .module-content {
-            padding: 20px;
-        }
-
-        .quiz-section {
-            padding: 20px;
-        }
-    }
+.module-html-content li {
+    margin-bottom: 0.5rem;
+}
 </style>
 {% endblock %}
