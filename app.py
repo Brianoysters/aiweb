@@ -679,6 +679,28 @@ def courses():
     enrolled_courses = [c.id for c in current_user.enrolled_courses]
     return render_template('courses.html', courses=all_courses, enrolled_courses=enrolled_courses)
 
+@app.route('/enroll_course/<int:course_id>', methods=['POST'])
+@login_required
+def enroll_course(course_id):
+    course = Course.query.get_or_404(course_id)
+    
+    # Check if user is already enrolled
+    if course in current_user.enrolled_courses:
+        flash('You are already enrolled in this course.', 'info')
+        return redirect(url_for('course', course_id=course_id))
+    
+    try:
+        # Add enrollment
+        current_user.enrolled_courses.append(course)
+        db.session.commit()
+        flash('Successfully enrolled in the course!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error enrolling in the course. Please try again.', 'error')
+        app.logger.error(f"Error enrolling user {current_user.id} in course {course_id}: {str(e)}")
+    
+    return redirect(url_for('course', course_id=course_id))
+
 def init_db():
     with app.app_context():
         # Drop tables in correct order
