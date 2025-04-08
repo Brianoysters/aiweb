@@ -1,72 +1,220 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Available Courses</h1>
-    
-    <!-- AI Course -->
-    <div class="card mb-5">
-        <div class="card-body">
-            <h2 class="card-title">Introduction to Artificial Intelligence</h2>
-            <p class="card-text">Master the fundamentals of AI through our comprehensive course covering key concepts, applications, and hands-on projects.</p>
-            <div class="row">
-                {% for module in modules %}
-                <div class="col-md-6 mb-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Module {{ module.order }}: {{ module.title }}</h5>
-                            <p class="card-text">{{ module.content[:100]|striptags }}...</p>
-                            <div class="progress mb-2">
-                                <div class="progress-bar" role="progressbar" 
-                                     style="width: {% if module.id in completed_modules %}100{% else %}0{% endif %}%">
-                                    {% if module.id in completed_modules %}Completed{% else %}Not Started{% endif %}
-                                </div>
-                            </div>
-                            <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-primary">
-                                {% if module.id in completed_modules %}
-                                    Review Module
-                                {% else %}
-                                    Start Module
-                                {% endif %}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+<div class="courses-container">
+    <div class="courses-header">
+        <h1>Available Courses</h1>
+        <p>Choose a course to start your learning journey</p>
     </div>
 
-    <!-- Upcoming Courses -->
-    <h2 class="mb-4">Upcoming Courses</h2>
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">GIS Course</h5>
-                    <p class="card-text">Learn Geographic Information Systems and spatial analysis. Master tools like QGIS and ArcGIS for effective spatial data management and analysis.</p>
-                    <button class="btn btn-secondary" disabled>Coming Soon</button>
+    <div class="courses-grid">
+        {% for course in courses %}
+        <div class="course-card">
+            <div class="course-badge">
+                {% if course.id in enrolled_courses %}
+                <span class="enrolled-badge">Enrolled</span>
+                {% else %}
+                <span class="new-badge">New</span>
+                {% endif %}
+            </div>
+            
+            <div class="course-content">
+                <h2>{{ course.title }}</h2>
+                <p class="course-description">{{ course.description }}</p>
+                
+                <div class="course-meta">
+                    <div class="meta-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ course.duration }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-laptop"></i>
+                        <span>{{ course.mode }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-currency-exchange"></i>
+                        <span>{{ course.fee }}</span>
+                    </div>
+                </div>
+
+                <div class="course-actions">
+                    {% if course.id in enrolled_courses %}
+                    <a href="{{ url_for('course', course_id=course.id) }}" class="btn-continue">
+                        <i class="bi bi-play-circle"></i>
+                        Continue Learning
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('course', course_id=course.id) }}" class="btn-enroll">
+                        <i class="bi bi-plus-circle"></i>
+                        Enroll Now
+                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Remote Sensing</h5>
-                    <p class="card-text">Master satellite imagery analysis and interpretation. Learn to process and analyze remote sensing data for various applications.</p>
-                    <button class="btn btn-secondary" disabled>Coming Soon</button>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Data Science</h5>
-                    <p class="card-text">Comprehensive data analysis and visualization techniques. Learn Python, R, and essential data science tools for effective data analysis.</p>
-                    <button class="btn btn-secondary" disabled>Coming Soon</button>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
+
+<style>
+    .courses-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .courses-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .courses-header h1 {
+        color: var(--royal-blue);
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .courses-header p {
+        color: var(--text-light);
+        font-size: 1.1rem;
+    }
+
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 30px;
+    }
+
+    .course-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .course-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 1;
+    }
+
+    .enrolled-badge {
+        background: var(--gold);
+        color: var(--royal-blue);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .new-badge {
+        background: var(--royal-blue);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .course-content {
+        padding: 25px;
+    }
+
+    .course-content h2 {
+        color: var(--royal-blue);
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+
+    .course-description {
+        color: var(--text-dark);
+        line-height: 1.6;
+        margin-bottom: 20px;
+        min-height: 80px;
+    }
+
+    .course-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+        padding: 15px;
+        background: var(--gray-light);
+        border-radius: 10px;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .meta-item i {
+        font-size: 1.5rem;
+        color: var(--royal-blue);
+        margin-bottom: 5px;
+    }
+
+    .meta-item span {
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+
+    .course-actions {
+        text-align: center;
+    }
+
+    .btn-continue, .btn-enroll {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 25px;
+        border-radius: 25px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-continue {
+        background: var(--royal-blue);
+        color: white;
+    }
+
+    .btn-enroll {
+        background: var(--gold);
+        color: var(--royal-blue);
+    }
+
+    .btn-continue:hover, .btn-enroll:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .courses-container {
+            padding: 20px 15px;
+        }
+
+        .courses-header h1 {
+            font-size: 2rem;
+        }
+
+        .courses-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .course-meta {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 {% endblock %} 

@@ -106,14 +106,20 @@ class User(UserMixin, db.Model):
     is_paid = db.Column(db.Boolean, default=False)
     progress = db.relationship('Progress', backref='user', lazy=True)
     quiz_results = db.relationship('QuizResult', backref='user', lazy=True)
+    last_quiz_attempt = db.Column(db.DateTime)
+    completed_modules = db.relationship('Module', secondary='user_completed_modules')
+    enrolled_courses = db.relationship('Course', secondary='user_enrolled_courses')
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    image_url = db.Column(db.String(500), nullable=True)
-    is_active = db.Column(db.Boolean, default=True)
+    duration = db.Column(db.String(50), nullable=False)
+    mode = db.Column(db.String(50), nullable=False)
+    fee = db.Column(db.String(50), nullable=False)
     modules = db.relationship('Module', backref='course', lazy=True)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Module(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -123,6 +129,7 @@ class Module(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     doc_link = db.Column(db.String(500), nullable=True)
     progress = db.relationship('Progress', backref='module', lazy=True)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Progress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -139,6 +146,18 @@ class QuizResult(db.Model):
     attempt_number = db.Column(db.Integer, default=1)
     completion_date = db.Column(db.DateTime, nullable=True)
     next_attempt_available = db.Column(db.DateTime, nullable=True)
+
+# Association table for user completed modules
+user_completed_modules = db.Table('user_completed_modules',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('module_id', db.Integer, db.ForeignKey('module.id'), primary_key=True)
+)
+
+# Association table for user enrolled courses
+user_enrolled_courses = db.Table('user_enrolled_courses',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
+)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -236,7 +255,8 @@ def module(module_id):
         return redirect(url_for('dashboard'))
     
     module = Module.query.get_or_404(module_id)
-    progress = Progress.query.filter_by(user_id=current_user.id, module_id=module_id).first()
+    course = module.course
+    completed_modules = [m.id for m in current_user.completed_modules]
     
     # Only check previous module completion for non-quiz modules
     if module.order < 5 and module.order > 1:
@@ -260,7 +280,8 @@ def module(module_id):
         if passed_result:
             return render_template('module.html', 
                                 module=module,
-                                progress=progress,
+                                course=course,
+                                completed_modules=completed_modules,
                                 already_passed=True,
                                 score=passed_result.score,
                                 completion_date=passed_result.completion_date)
@@ -283,17 +304,19 @@ def module(module_id):
                         next_attempt_time = first_attempt_today.completion_date + timedelta(days=1)
                         return render_template('module.html', 
                                             module=module,
-                                            progress=progress,
+                                            course=course,
+                                            completed_modules=completed_modules,
                                             next_attempt_available=next_attempt_time)
             
             # Check if cooldown period has passed
             if last_attempt.next_attempt_available and datetime.utcnow() < last_attempt.next_attempt_available:
                 return render_template('module.html', 
                                     module=module,
-                                    progress=progress,
+                                    course=course,
+                                    completed_modules=completed_modules,
                                     next_attempt_available=last_attempt.next_attempt_available)
     
-    return render_template('module.html', module=module, progress=progress)
+    return render_template('module.html', module=module, course=course, completed_modules=completed_modules)
 
 @app.route('/complete_module/<int:module_id>')
 @login_required
@@ -646,6 +669,13 @@ def make_admin(user_id):
 @app.route('/admin-details')
 def admin_details():
     return render_template('admin_details.html')
+
+@app.route('/courses')
+@login_required
+def courses():
+    all_courses = Course.query.all()
+    enrolled_courses = [c.id for c in current_user.enrolled_courses]
+    return render_template('courses.html', courses=all_courses, enrolled_courses=enrolled_courses)
 
 if __name__ == '__main__':
     with app.app_context():

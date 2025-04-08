@@ -1,36 +1,59 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Courses</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
-        </ol>
-    </nav>
-
-    <div class="card mb-4">
-        <div class="card-body">
-            <h1 class="card-title">{{ course.title }}</h1>
-            <p class="card-text">{{ course.description }}</p>
+<div class="course-container">
+    <div class="course-header">
+        <div class="course-title">
+            <h1>{{ course.title }}</h1>
+            <p class="course-description">{{ course.description }}</p>
+        </div>
+        
+        <div class="course-meta">
+            <div class="meta-item">
+                <i class="bi bi-clock"></i>
+                <span>{{ course.duration }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-laptop"></i>
+                <span>{{ course.mode }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-currency-exchange"></i>
+                <span>{{ course.fee }}</span>
+            </div>
         </div>
     </div>
 
-    <h2 class="mb-4">Course Modules</h2>
-    <div class="row">
-        {% for module in modules %}
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Module {{ module.order }}: {{ module.title }}</h5>
-                    <p class="card-text">{{ module.content[:150]|striptags }}...</p>
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" 
-                             style="width: {% if module.id in completed_modules %}100{% else %}0{% endif %}%">
-                            {% if module.id in completed_modules %}Completed{% else %}Not Started{% endif %}
-                        </div>
+    <div class="course-content">
+        <div class="modules-section">
+            <h2>Course Modules</h2>
+            <div class="modules-grid">
+                {% for module in modules %}
+                <div class="module-card">
+                    <div class="module-header">
+                        <h3>Module {{ module.order }}</h3>
+                        {% if module.id in completed_modules %}
+                        <span class="completed-badge">Completed</span>
+                        {% endif %}
                     </div>
-                    <a href="{{ url_for('module', module_id=module.id) }}" class="btn btn-primary">
+                    
+                    <h4>{{ module.title }}</h4>
+                    <p class="module-description">{{ module.content[:150]|striptags }}...</p>
+                    
+                    <div class="module-progress">
+                        <div class="progress-bar">
+                            <div class="progress" style="width: {% if module.id in completed_modules %}100{% else %}0{% endif %}%"></div>
+                        </div>
+                        <span class="progress-text">
+                            {% if module.id in completed_modules %}
+                                Completed
+                            {% else %}
+                                Not Started
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <a href="{{ url_for('module', module_id=module.id) }}" class="btn-module">
                         {% if module.id in completed_modules %}
                             Review Module
                         {% else %}
@@ -38,9 +61,226 @@
                         {% endif %}
                     </a>
                 </div>
+                {% endfor %}
             </div>
         </div>
-        {% endfor %}
+
+        <div class="course-actions">
+            {% if course.id not in enrolled_courses %}
+            <a href="{{ url_for('enroll_course', course_id=course.id) }}" class="btn-enroll">
+                <i class="bi bi-plus-circle"></i>
+                Enroll in Course
+            </a>
+            {% endif %}
+        </div>
     </div>
 </div>
+
+<style>
+    .course-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .course-header {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-bottom: 40px;
+    }
+
+    .course-title h1 {
+        color: var(--royal-blue);
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+
+    .course-description {
+        color: var(--text-dark);
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+
+    .course-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        background: var(--gray-light);
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .meta-item i {
+        font-size: 1.8rem;
+        color: var(--royal-blue);
+        margin-bottom: 10px;
+    }
+
+    .meta-item span {
+        color: var(--text-dark);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .modules-section {
+        margin-bottom: 40px;
+    }
+
+    .modules-section h2 {
+        color: var(--royal-blue);
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+    }
+
+    .module-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .module-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .module-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .module-header h3 {
+        color: var(--royal-blue);
+        font-size: 1.2rem;
+        margin: 0;
+    }
+
+    .completed-badge {
+        background: var(--gold);
+        color: var(--royal-blue);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .module-card h4 {
+        color: var(--text-dark);
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+    }
+
+    .module-description {
+        color: var(--text-light);
+        line-height: 1.6;
+        margin-bottom: 20px;
+        min-height: 60px;
+    }
+
+    .module-progress {
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background: var(--gray-light);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 5px;
+    }
+
+    .progress {
+        height: 100%;
+        background: var(--royal-blue);
+        transition: width 0.3s ease;
+    }
+
+    .progress-text {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    .btn-module {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: var(--royal-blue);
+        color: white;
+        text-align: center;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .btn-module:hover {
+        background: var(--gold);
+        color: var(--royal-blue);
+        transform: translateY(-3px);
+    }
+
+    .course-actions {
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .btn-enroll {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 30px;
+        background: var(--gold);
+        color: var(--royal-blue);
+        border-radius: 25px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-enroll:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .course-container {
+            padding: 20px 15px;
+        }
+
+        .course-header {
+            padding: 20px;
+        }
+
+        .course-title h1 {
+            font-size: 2rem;
+        }
+
+        .course-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .modules-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 {% endblock %} 
