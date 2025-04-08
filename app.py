@@ -97,6 +97,12 @@ def initialize_db():
 with app.app_context():
     initialize_db()
 
+# Define the enrollment table
+enrollment = db.Table('enrollment',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
+)
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -104,12 +110,13 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_paid = db.Column(db.Boolean, default=False)
-    progress = db.relationship('Progress', backref='user', lazy=True)
-    quiz_results = db.relationship('QuizResult', backref='user', lazy=True)
-    last_quiz_attempt = db.Column(db.DateTime)
-    completed_modules = db.relationship('Module', secondary='user_completed_modules')
-    enrolled_courses = db.relationship('Course', secondary='user_enrolled_courses')
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    progress = db.relationship('Progress', backref='user', lazy=True)
+    enrolled_courses = db.relationship('Course', secondary='enrollment', lazy='subquery',
+        backref=db.backref('enrolled_users', lazy=True))
+
+    def __repr__(self):
+        return f'<User {self.username}>'
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -118,6 +125,7 @@ class Course(db.Model):
     duration = db.Column(db.String(50), nullable=False)
     mode = db.Column(db.String(50), nullable=False)
     fee = db.Column(db.String(50), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
     modules = db.relationship('Module', backref='course', lazy=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -151,12 +159,6 @@ class QuizResult(db.Model):
 user_completed_modules = db.Table('user_completed_modules',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('module_id', db.Integer, db.ForeignKey('module.id'), primary_key=True)
-)
-
-# Association table for user enrolled courses
-user_enrolled_courses = db.Table('user_enrolled_courses',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
 )
 
 @login_manager.user_loader
@@ -677,111 +679,125 @@ def courses():
     enrolled_courses = [c.id for c in current_user.enrolled_courses]
     return render_template('courses.html', courses=all_courses, enrolled_courses=enrolled_courses)
 
-if __name__ == '__main__':
+def init_db():
     with app.app_context():
+        # Drop tables in correct order
+        with db.engine.connect() as conn:
+            conn.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+            conn.execute(text("DROP TABLE IF EXISTS user_enrolled_courses"))
+            conn.execute(text("DROP TABLE IF EXISTS enrollment"))
+            conn.execute(text("DROP TABLE IF EXISTS progress"))
+            conn.execute(text("DROP TABLE IF EXISTS module"))
+            conn.execute(text("DROP TABLE IF EXISTS course"))
+            conn.execute(text("DROP TABLE IF EXISTS user"))
+            conn.execute(text("SET FOREIGN_KEY_CHECKS=1"))
+            conn.commit()
+        print("Dropped all tables")
+        
+        # Create all tables
         db.create_all()
+        print("Created all tables with new schema")
         
-        # Update existing modules with documentation links
-        module_links = {
-            1: "https://docs.google.com/document/d/1qajlv9m0qQ6mLHen5IqfnS-KY75TIc8x9NbKLwAzO0s/edit?usp=sharing",
-            2: "https://docs.google.com/document/d/1XKCEm18sHRooGkCC90IhcQvdWGCNGdKK2px4iOHCn9Q/edit?usp=sharing",
-            3: "https://docs.google.com/document/d/1u3mq0dvNmsIhZOKk4yLJWpvlbLT2n6L4VkoweE1rWWQ/edit?usp=sharing",
-            4: "https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"
-        }
+        # Check if admin user exists, if not create one
+        if not User.query.filter_by(username='admin').first():
+            admin = User(
+                username='admin',
+                email='admin@example.com',
+                password_hash=generate_password_hash('admin123', method='pbkdf2:sha256'),
+                is_admin=True,
+                is_paid=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("Created admin user")
         
-        for order, link in module_links.items():
-            module = Module.query.filter_by(order=order).first()
-            if module:
-                module.doc_link = link
-                db.session.commit()
-        
-        # Check if modules exist, if not create sample modules
-        if not Module.query.first():
+        # Check if courses exist, if not create sample course
+        if not Course.query.first():
+            course = Course(
+                title="Introduction to Artificial Intelligence",
+                description="Master the fundamentals of AI through our comprehensive course covering key concepts, applications, and hands-on projects.",
+                duration="8 weeks",
+                mode="Online & Physical (Hybrid)",
+                fee="KES 15,000",
+                is_active=True
+            )
+            db.session.add(course)
+            db.session.commit()
+            print("Created sample course")
+
+            # Create modules for the course
             modules = [
-                Module(order=1, title="Introduction to AI and ML in GIS", 
-                      content="""<h3>Overview of AI and ML in GIS</h3>
-                      <p>This module covers:</p>
-                      <ul>
+                Module(
+                    order=1,
+                    title="Introduction to AI and ML in GIS",
+                    content="""<h3>Overview of AI and ML in GIS</h3>
+                    <p>This module covers:</p>
+                    <ul>
                         <li>AI and ML concepts in GIS context</li>
                         <li>Role of AI and ML in GIS applications</li>
                         <li>Data types and sources in GIS (Raster, Vector, Remote Sensing)</li>
                         <li>Geospatial data processing fundamentals</li>
                         <li>Ethical considerations and challenges</li>
-                      </ul>
-                      <h3>Practical Components</h3>
-                      <ul>
-                        <li>Basic Python scripting for GIS</li>
-                        <li>Introduction to geospatial libraries (GDAL, Rasterio, GeoPandas)</li>
-                      </ul>
-                      """,
-                      doc_link="https://docs.google.com/document/d/1qajlv9m0qQ6mLHen5IqfnS-KY75TIc8x9NbKLwAzO0s/edit?usp=sharing"),
-                Module(order=2, title="Machine Learning for Spatial Analysis", 
-                      content="""<h3>Key Topics</h3>
-                      <ul>
+                    </ul>""",
+                    course_id=course.id
+                ),
+                Module(
+                    order=2,
+                    title="Machine Learning for Spatial Analysis",
+                    content="""<h3>Key Topics</h3>
+                    <ul>
                         <li>Supervised vs. Unsupervised Learning in GIS</li>
                         <li>Feature Engineering for Spatial Data</li>
                         <li>Spatial Clustering and Classification Techniques</li>
                         <li>Regression Models for Geospatial Prediction</li>
-                        <li>Time-Series Analysis in GIS</li>
-                        <li>Deep Learning-Based Models</li>
-                      </ul>
-                      <h3>Practical Components</h3>
-                      <ul>
-                        <li>Implementing K-Means and DBSCAN for spatial clustering</li>
-                        <li>Training Random Forest models for land-use classification</li>
-                        <li>Using CNNs for feature extraction in remote sensing</li>
-                      </ul>
-                      """,
-                      doc_link="https://docs.google.com/document/d/1XKCEm18sHRooGkCC90IhcQvdWGCNGdKK2px4iOHCn9Q/edit?usp=sharing"),
-                Module(order=3, title="AI and Deep Learning for GIS Applications", 
-                      content="""<h3>Core Concepts</h3>
-                      <ul>
+                    </ul>""",
+                    course_id=course.id
+                ),
+                Module(
+                    order=3,
+                    title="AI and Deep Learning for GIS Applications",
+                    content="""<h3>Core Concepts</h3>
+                    <ul>
                         <li>Neural Networks for Geospatial Data</li>
                         <li>Object Detection in Remote Sensing</li>
                         <li>Semantic Segmentation for Land Cover Classification</li>
                         <li>Deep Learning Models (CNNs, RNNs) for GIS</li>
-                        <li>AI in Geospatial Automation and Decision Support</li>
-                      </ul>
-                      <h3>Practical Components</h3>
-                      <ul>
-                        <li>Training CNNs for land cover classification</li>
-                        <li>Using TensorFlow/Keras for geospatial image analysis</li>
-                      </ul>
-                      """,
-                      doc_link="https://docs.google.com/document/d/1u3mq0dvNmsIhZOKk4yLJWpvlbLT2n6L4VkoweE1rWWQ/edit?usp=sharing"),
-                Module(order=4, title="Practical Applications of AI and ML in GIS", 
-                      content="""<h3>Applications</h3>
-                      <ul>
+                    </ul>""",
+                    course_id=course.id
+                ),
+                Module(
+                    order=4,
+                    title="Practical Applications of AI and ML in GIS",
+                    content="""<h3>Applications</h3>
+                    <ul>
                         <li>AI for Water Body Detection in Satellite Images</li>
                         <li>Route Optimization Using AI and GIS</li>
                         <li>Real-time Geospatial Data Processing</li>
-                        <li>AI-Powered Urban Planning and Environmental Monitoring</li>
-                      </ul>
-                      <h3>Practical Components</h3>
-                      <ul>
-                        <li>Water Body Detection Using AI</li>
-                        <li>Implementing AI for detecting water bodies in remote sensing imagery</li>
-                        <li>Shortest Route Optimization Using GIS and AI</li>
-                        <li>Using Folium for mapping and visualization</li>
-                      </ul>
-                      """,
-                      doc_link="https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"),
-                Module(order=5, title="Final Assessment", 
-                      content="""<h3>Final Assessment Instructions</h3>
-                      <p>You have completed all the modules! Now it's time to test your knowledge:</p>
-                      <ul>
-                          <li>The quiz consists of 10 multiple-choice questions</li>
-                          <li>You need to score 80% or higher to pass (8 or more correct answers)</li>
-                          <li>Each question tests your understanding of AI in Web GIS</li>
-                          <li>You'll receive immediate feedback on your answers</li>
-                          <li>Upon passing, you can download your certificate</li>
-                      </ul>
-                      <div class="text-center mt-4">
-                          <a href="/quiz" class="btn btn-primary btn-lg">Start Quiz</a>
-                      </div>""")
+                        <li>AI-Powered Urban Planning</li>
+                    </ul>""",
+                    course_id=course.id
+                ),
+                Module(
+                    order=5,
+                    title="Final Assessment",
+                    content="""<h3>Final Assessment Instructions</h3>
+                    <p>You have completed all the modules! Now it's time to test your knowledge:</p>
+                    <ul>
+                        <li>The quiz consists of 10 multiple-choice questions</li>
+                        <li>You need to score 80% or higher to pass</li>
+                        <li>Upon passing, you can download your certificate</li>
+                    </ul>""",
+                    course_id=course.id
+                )
             ]
+            
             for module in modules:
                 db.session.add(module)
             db.session.commit()
-            
+            print("Created all modules")
+
+# Initialize database
+init_db()
+
+if __name__ == '__main__':
     app.run(debug=True)
