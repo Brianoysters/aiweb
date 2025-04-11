@@ -663,18 +663,33 @@ def admin_required(f):
 @login_required
 @admin_required
 def admin_dashboard():
-    # Get all users and courses
-    users = User.query.all()
-    courses = Course.query.all()
-    
-    # Log the number of users and courses
-    print(f"Admin dashboard accessed by {current_user.username}")
-    print(f"Total users: {len(users)}")
-    print(f"Total courses: {len(courses)}")
-    
-    return render_template('admin/admin_dashboard.html', 
-                         users=users, 
-                         courses=courses)
+    try:
+        # Check if user is authenticated and is admin
+        if not current_user.is_authenticated:
+            flash('Please login to access the admin dashboard', 'error')
+            return redirect(url_for('login'))
+            
+        if not current_user.is_admin:
+            flash('You do not have permission to access this page', 'error')
+            return redirect(url_for('dashboard'))
+            
+        # Get all users and courses
+        users = User.query.all()
+        courses = Course.query.all()
+        
+        # Log the number of users and courses
+        print(f"Admin dashboard accessed by {current_user.username}")
+        print(f"Total users: {len(users)}")
+        print(f"Total courses: {len(courses)}")
+        
+        return render_template('admin/admin_dashboard.html', 
+                            users=users, 
+                            courses=courses)
+                            
+    except Exception as e:
+        print(f"Error in admin dashboard: {str(e)}")
+        flash('An error occurred while accessing the admin dashboard', 'error')
+        return redirect(url_for('dashboard'))
 
 @app.route('/admin/user/<int:user_id>/toggle_payment', methods=['POST'])
 @login_required
