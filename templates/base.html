@@ -39,6 +39,31 @@
             --transition-speed: 0.3s;
         }
 
+        /* Background Slideshow */
+        .slideshow-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
         /* Base styles */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -50,6 +75,18 @@
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: -1;
         }
 
         /* Navigation */
@@ -67,9 +104,14 @@
             gap: 0.5rem;
         }
 
+        .navbar-brand img {
+            height: 40px;
+            width: auto;
+        }
+
         .nav-link {
             color: rgba(255,255,255,0.8) !important;
-            transition: color var(--transition-speed) ease;
+            transition: all var(--transition-speed) ease;
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
             position: relative;
@@ -78,6 +120,7 @@
         .nav-link:hover, .nav-link:focus {
             color: white !important;
             background-color: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
         }
 
         .nav-link.active {
@@ -85,11 +128,53 @@
             background-color: rgba(255,255,255,0.1);
         }
 
+        .dropdown-menu {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 0.5rem;
+            min-width: 200px;
+        }
+
+        .dropdown-item {
+            color: rgba(255,255,255,0.8);
+            transition: all var(--transition-speed) ease;
+            padding: 0.75rem 1rem;
+            border-radius: calc(var(--border-radius) - 2px);
+            margin: 0.25rem 0;
+        }
+
+        .dropdown-item:hover, .dropdown-item:focus {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item.active {
+            color: white;
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .dropdown-toggle::after {
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .show .dropdown-toggle::after {
+            transform: rotate(180deg);
+        }
+
+        .navbar-nav .dropdown-menu {
+            margin-top: 0.5rem;
+        }
+
         /* Main content */
         .main-content {
             flex: 1;
             padding: 2rem 0;
             min-height: calc(100vh - 160px);
+            position: relative;
+            z-index: 1;
         }
 
         /* Cards */
@@ -205,6 +290,23 @@
                 border-radius: var(--border-radius);
                 margin-top: 1rem;
             }
+
+            .dropdown-menu {
+                background-color: transparent;
+                box-shadow: none;
+                border: none;
+                padding: 0;
+            }
+
+            .dropdown-item {
+                padding: 0.5rem 1rem;
+                margin: 0;
+            }
+
+            .dropdown-item:hover {
+                transform: none;
+                background-color: rgba(255,255,255,0.1);
+            }
         }
 
         @media (max-width: 576px) {
@@ -290,62 +392,65 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark" role="navigation" aria-label="Main navigation">
+    <!-- Background Slideshow -->
+    <div class="slideshow-container">
+        <div class="slide" style="background-image: url('{{ url_for('static', filename='img1.webp') }}')"></div>
+        <div class="slide" style="background-image: url('{{ url_for('static', filename='img2.webp') }}')"></div>
+        <div class="slide" style="background-image: url('{{ url_for('static', filename='img3.webp') }}')"></div>
+        <div class="slide" style="background-image: url('{{ url_for('static', filename='img4.webp') }}')"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}" aria-label="SUBOMAP AFRICA ACADEMY Home">
-                <i class="fas fa-globe-africa" aria-hidden="true"></i>
-                <span>SUBOMAP AFRICA ACADEMY</span>
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='header.webp') }}" alt="SUBOMAP AFRICA ACADEMY">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Courses
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('courses') }}">All Courses</a></li>
+                            {% if current_user.is_authenticated %}
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">My Courses</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
                     {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('index') }}" aria-label="Courses">
-                                <i class="fas fa-book" aria-hidden="true"></i>
-                                <span>Courses</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard') }}" aria-label="Dashboard">
-                                <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
-                                <span>Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('certificate') }}" aria-label="Certificate">
-                                <i class="fas fa-certificate" aria-hidden="true"></i>
-                                <span>Certificate</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('logout') }}" aria-label="Logout">
-                                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
-                                <span>Logout</span>
-                            </a>
-                        </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Account
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('certificate') }}">Certificate</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                        </ul>
+                    </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}" aria-label="Login">
-                                <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
-                                <span>Login</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('signup') }}" aria-label="Sign Up">
-                                <i class="fas fa-user-plus" aria-hidden="true"></i>
-                                <span>Sign Up</span>
-                            </a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main class="main-content" role="main">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="container">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -362,6 +467,7 @@
         </div>
     </main>
 
+    <!-- Footer -->
     <footer class="footer" role="contentinfo">
         <div class="container">
             <div class="row">

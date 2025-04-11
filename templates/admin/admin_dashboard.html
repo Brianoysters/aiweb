@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Admin Dashboard</h2>
+    
+    <!-- Users Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Users</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Enrolled Courses</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% if user.is_paid %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Unpaid</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.enrolled_courses %}
+                                    <ul class="list-unstyled mb-0">
+                                        {% for course in user.enrolled_courses %}
+                                            <li>{{ course.title }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span class="text-muted">No courses</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            onclick="togglePayment({{ user.id }})">
+                                        {% if user.is_paid %}
+                                            Revoke Payment
+                                        {% else %}
+                                            Approve Payment
+                                        {% endif %}
+                                    </button>
+                                    {% if not user.is_admin %}
+                                        <button type="button" class="btn btn-sm btn-outline-success" 
+                                                onclick="makeAdmin({{ user.id }})">
+                                            Make Admin
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses Section -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Courses</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Enrolled Users</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr>
+                            <td>{{ course.title }}</td>
+                            <td>{{ course.enrolled_users|length }}</td>
+                            <td>
+                                {% if course.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('edit_course', course_id=course.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        Edit
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="toggleCourse({{ course.id }})">
+                                        {% if course.is_active %}
+                                            Deactivate
+                                        {% else %}
+                                            Activate
+                                        {% endif %}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table th {
+    background-color: var(--light-bg);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+}
+
+.btn-group .btn {
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        margin-bottom: 1rem;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .btn-group .btn {
+        margin-right: 0;
+    }
+}
+</style>
+
+<script>
+function togglePayment(userId) {
+    fetch(`/admin/user/${userId}/toggle_payment`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function makeAdmin(userId) {
+    fetch(`/admin/user/${userId}/make_admin`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function toggleCourse(courseId) {
+    fetch(`/admin/course/${courseId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %} 
