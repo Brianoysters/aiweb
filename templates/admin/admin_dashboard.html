@@ -19,6 +19,7 @@
                             <th>Username</th>
                             <th>Email</th>
                             <th>Status</th>
+                            <th>Enrolled Courses</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -35,6 +36,17 @@
                                 {% endif %}
                                 {% if user.is_admin %}
                                     <span class="badge bg-primary">Admin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.enrolled_courses %}
+                                    <ul class="list-unstyled mb-0">
+                                        {% for course in user.enrolled_courses %}
+                                            <li>{{ course.title }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span class="text-muted">No courses</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -110,6 +122,16 @@
 
 .btn-group .btn {
     margin-right: 0.5rem;
+}
+
+.list-unstyled {
+    margin: 0;
+    padding: 0;
+}
+
+.list-unstyled li {
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
 }
 
 @media (max-width: 768px) {
