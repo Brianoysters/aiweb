@@ -717,264 +717,217 @@ def enroll_course(course_id):
 
 def init_db():
     with app.app_context():
-        # Drop tables in correct order
-        with db.engine.connect() as conn:
-            conn.execute(text("SET FOREIGN_KEY_CHECKS=0"))
-            conn.execute(text("DROP TABLE IF EXISTS user_enrolled_courses"))
-            conn.execute(text("DROP TABLE IF EXISTS enrollment"))
-            conn.execute(text("DROP TABLE IF EXISTS progress"))
-            conn.execute(text("DROP TABLE IF EXISTS quiz_question"))
-            conn.execute(text("DROP TABLE IF EXISTS module"))
-            conn.execute(text("DROP TABLE IF EXISTS course"))
-            conn.execute(text("DROP TABLE IF EXISTS user"))
-            conn.execute(text("SET FOREIGN_KEY_CHECKS=1"))
-            conn.commit()
-        print("Dropped all tables")
-        
-        # Create all tables
-        db.create_all()
-        print("Created all tables with new schema")
-        
-        # Check if admin user exists, if not create one
-        if not User.query.filter_by(username='admin').first():
-            admin = User(
-                username='admin',
-                email='admin@example.com',
-                password_hash=generate_password_hash('admin123', method='pbkdf2:sha256'),
-                is_admin=True,
-                is_paid=True
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print("Created admin user")
-        
-        # Check if courses exist, if not create sample course
-        if not Course.query.first():
-            course = Course(
-                title="Introduction to Artificial Intelligence",
-                description="Master the fundamentals of AI through our comprehensive course covering key concepts, applications, and hands-on projects.",
-                duration="8 weeks",
-                mode="Online & Physical (Hybrid)",
-                fee="KES 15,000",
-                is_active=True
-            )
-            db.session.add(course)
-            db.session.commit()
-            print("Created sample course")
+        try:
+            # Check if tables exist
+            inspector = db.inspect(db.engine)
+            existing_tables = inspector.get_table_names()
             
-            # Create modules for the course
-            modules = [
-                Module(
-                    order=1,
-                    title="Introduction to AI and ML",
-                    content="""
-                    <h2>What is Artificial Intelligence?</h2>
-                    <p>Artificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think and learn like humans. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.</p>
-
-                    <h2>Key Concepts in AI</h2>
-                    <ul>
-                        <li>Machine Learning: A subset of AI that enables systems to learn and improve from experience</li>
-                        <li>Deep Learning: A type of machine learning that uses neural networks with many layers</li>
-                        <li>Natural Language Processing: The ability of computers to understand and process human language</li>
-                        <li>Computer Vision: The ability of computers to interpret and understand visual information</li>
-                      </ul>
-
-                    <h2>Applications of AI in GIS</h2>
-                    <p>AI is transforming GIS in numerous ways:</p>
-                    <ul>
-                        <li>Automated feature extraction from satellite imagery</li>
-                        <li>Predictive modeling for urban planning</li>
-                        <li>Traffic pattern analysis and optimization</li>
-                        <li>Environmental monitoring and prediction</li>
-                      </ul>
-                      """,
-                    course_id=course.id,
-                    doc_link="https://docs.google.com/document/d/1qajlv9m0qQ6mLHen5IqfnS-KY75TIc8x9NbKLwAzO0s/edit?usp=sharing"
-                ),
-                Module(
-                    order=2,
-                    title="Machine Learning Fundamentals",
-                    content="""
-                    <h2>Understanding Machine Learning</h2>
-                    <p>Machine Learning is a method of data analysis that automates analytical model building. It is a branch of artificial intelligence based on the idea that systems can learn from data, identify patterns and make decisions with minimal human intervention.</p>
-
-                    <h2>Types of Machine Learning</h2>
-                    <ul>
-                        <li>Supervised Learning: Learning from labeled data</li>
-                        <li>Unsupervised Learning: Finding patterns in unlabeled data</li>
-                        <li>Reinforcement Learning: Learning through trial and error</li>
-                      </ul>
-
-                    <h2>Common ML Algorithms</h2>
-                    <ul>
-                        <li>Linear Regression</li>
-                        <li>Decision Trees</li>
-                        <li>Random Forests</li>
-                        <li>Support Vector Machines</li>
-                        <li>Neural Networks</li>
-                      </ul>
-                      """,
-                    course_id=course.id,
-                    doc_link="https://docs.google.com/document/d/1XKCEm18sHRooGkCC90IhcQvdWGCNGdKK2px4iOHCn9Q/edit?usp=sharing"
-                ),
-                Module(
-                    order=3,
-                    title="AI in Spatial Analysis",
-                    content="""
-                    <h2>Spatial Analysis with AI</h2>
-                    <p>AI enhances spatial analysis by providing more sophisticated tools for pattern recognition, prediction, and decision-making in geographic contexts.</p>
-
-                    <h2>Key Applications</h2>
-                    <ul>
-                        <li>Land Use Classification</li>
-                        <li>Population Density Prediction</li>
-                        <li>Environmental Change Detection</li>
-                        <li>Infrastructure Planning</li>
-                      </ul>
-
-                    <h2>Tools and Techniques</h2>
-                    <ul>
-                        <li>Geospatial Machine Learning Libraries</li>
-                        <li>Remote Sensing Analysis</li>
-                        <li>Spatial Statistics</li>
-                        <li>Network Analysis</li>
-                      </ul>
-                      """,
-                    course_id=course.id,
-                    doc_link="https://docs.google.com/document/d/1u3mq0dvNmsIhZOKk4yLJWpvlbLT2n6L4VkoweE1rWWQ/edit?usp=sharing"
-                ),
-                Module(
-                    order=4,
-                    title="Practical Applications",
-                    content="""
-                    <h2>Real-World Applications</h2>
-                    <p>This module explores practical applications of AI and ML in GIS through case studies and examples.</p>
-
-                    <h2>Case Studies</h2>
-                    <ul>
-                        <li>Urban Planning and Smart Cities</li>
-                        <li>Environmental Monitoring</li>
-                        <li>Disaster Management</li>
-                        <li>Transportation Planning</li>
-                      </ul>
-
-                    <h2>Implementation Strategies</h2>
-                    <ul>
-                        <li>Data Collection and Preparation</li>
-                        <li>Model Selection and Training</li>
-                        <li>Validation and Testing</li>
-                        <li>Deployment and Monitoring</li>
-                      </ul>
-                      """,
-                    course_id=course.id,
-                    doc_link="https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"
-                ),
-                Module(
-                    order=5,
-                    title="Final Quiz",
-                    content="""
-                    <h2>Course Quiz</h2>
-                    <p>Test your knowledge of AI and ML in GIS with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>
-                    """,
-                    course_id=course.id,
-                    doc_link="https://docs.google.com/document/d/1qUcU2GUbgxqI7QCGhgX6xKCL36cBqLSreUoaySGm0Qc/edit?usp=sharing"
+            # Only create tables if they don't exist
+            if not existing_tables:
+                db.create_all()
+                print("Created all tables with new schema")
+            else:
+                print("Tables already exist, skipping creation")
+            
+            # Check if admin user exists, if not create one
+            if not User.query.filter_by(username='admin').first():
+                admin = User(
+                    username='admin',
+                    email='admin@example.com',
+                    password_hash=generate_password_hash('admin123', method='pbkdf2:sha256'),
+                    is_admin=True,
+                    is_paid=True
                 )
-            ]
+                db.session.add(admin)
+                db.session.commit()
+                print("Created admin user")
+            else:
+                print("Admin user already exists")
             
-            for module in modules:
-                db.session.add(module)
-            db.session.commit()
-            print("Created all modules")
-
-            # Create quiz questions for the final module
-            quiz_module = Module.query.filter_by(order=5).first()
-            quiz_questions = [
-                QuizQuestion(
-                    question_text="What is the primary goal of Artificial Intelligence?",
-                    option_a="To create machines that can think and learn like humans",
-                    option_b="To replace human workers with machines",
-                    option_c="To make computers faster than humans",
-                    correct_answer="a",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="Which of these is NOT a type of Machine Learning?",
-                    option_a="Supervised Learning",
-                    option_b="Unsupervised Learning",
-                    option_c="Manual Learning",
-                    correct_answer="c",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="What is the main advantage of using AI in GIS?",
-                    option_a="Automated analysis of large spatial datasets",
-                    option_b="Making maps more colorful",
-                    option_c="Reducing the need for GPS devices",
-                    correct_answer="a",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="Which algorithm is commonly used for image classification in GIS?",
-                    option_a="Convolutional Neural Networks",
-                    option_b="Linear Regression",
-                    option_c="K-means Clustering",
-                    correct_answer="a",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="What is the purpose of validation in machine learning?",
-                    option_a="To ensure the model performs well on unseen data",
-                    option_b="To make the model run faster",
-                    option_c="To reduce the size of the dataset",
-                    correct_answer="a",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="Which of these is an example of supervised learning?",
-                    option_a="Predicting house prices based on features",
-                    option_b="Grouping similar customers together",
-                    option_c="Finding patterns in unlabeled data",
-                    correct_answer="a",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="What is the role of neural networks in GIS?",
-                    option_a="To process complex spatial patterns and relationships",
-                    option_b="To store geographic data",
-                    option_c="To create 3D models of buildings",
-                    correct_answer="a",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="Which of these is a common application of AI in urban planning?",
-                    option_a="Predicting traffic patterns and congestion",
-                    option_b="Designing building facades",
-                    option_c="Calculating property taxes",
-                    correct_answer="a",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="What is the main challenge in implementing AI in GIS?",
-                    option_a="Data quality and availability",
-                    option_b="Computer processing speed",
-                    option_c="Internet connection speed",
-                    correct_answer="a",
-                    module_id=quiz_module.id
-                ),
-                QuizQuestion(
-                    question_text="How does AI contribute to environmental monitoring?",
-                    option_a="By analyzing satellite imagery for changes",
-                    option_b="By replacing environmental sensors",
-                    option_c="By controlling weather patterns",
-                    correct_answer="a",
-                    module_id=quiz_module.id
+            # Check if courses exist, if not create sample course
+            if not Course.query.first():
+                course = Course(
+                    title="Introduction to Artificial Intelligence",
+                    description="Master the fundamentals of AI through our comprehensive course covering key concepts, applications, and hands-on projects.",
+                    duration="8 weeks",
+                    mode="Online & Physical (Hybrid)",
+                    fee="KES 15,000",
+                    is_active=True
                 )
-            ]
-            
-            for question in quiz_questions:
-                db.session.add(question)
-            db.session.commit()
-            print("Created quiz questions")
+                db.session.add(course)
+                db.session.commit()
+                print("Created sample course")
+                
+                # Create modules for the course
+                modules = [
+                    Module(
+                        order=1,
+                        title="Introduction to AI and ML",
+                        content="""<h2>What is Artificial Intelligence?</h2>
+                        <p>Artificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think and learn like humans. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.</p>
+
+                        <h2>Key Concepts in AI</h2>
+                        <ul>
+                            <li>Machine Learning: A subset of AI that enables systems to learn and improve from experience</li>
+                            <li>Deep Learning: A type of machine learning that uses neural networks with many layers</li>
+                            <li>Natural Language Processing: The ability of computers to understand and process human language</li>
+                            <li>Computer Vision: The ability of computers to interpret and understand visual information</li>
+                        </ul>""",
+                        course_id=course.id
+                    ),
+                    Module(
+                        order=2,
+                        title="Machine Learning Fundamentals",
+                        content="""<h2>Understanding Machine Learning</h2>
+                        <p>Machine Learning is a method of data analysis that automates analytical model building. It is a branch of artificial intelligence based on the idea that systems can learn from data, identify patterns and make decisions with minimal human intervention.</p>
+
+                        <h2>Types of Machine Learning</h2>
+                        <ul>
+                            <li>Supervised Learning: Learning from labeled data</li>
+                            <li>Unsupervised Learning: Finding patterns in unlabeled data</li>
+                            <li>Reinforcement Learning: Learning through trial and error</li>
+                        </ul>""",
+                        course_id=course.id
+                    ),
+                    Module(
+                        order=3,
+                        title="AI in Spatial Analysis",
+                        content="""<h2>Spatial Analysis with AI</h2>
+                        <p>AI enhances spatial analysis by providing more sophisticated tools for pattern recognition, prediction, and decision-making in geographic contexts.</p>
+
+                        <h2>Key Applications</h2>
+                        <ul>
+                            <li>Land Use Classification</li>
+                            <li>Population Density Prediction</li>
+                            <li>Environmental Change Detection</li>
+                            <li>Infrastructure Planning</li>
+                        </ul>""",
+                        course_id=course.id
+                    ),
+                    Module(
+                        order=4,
+                        title="Practical Applications",
+                        content="""<h2>Real-World Applications</h2>
+                        <p>This module explores practical applications of AI and ML in GIS through case studies and examples.</p>
+
+                        <h2>Case Studies</h2>
+                        <ul>
+                            <li>Urban Planning and Smart Cities</li>
+                            <li>Environmental Monitoring</li>
+                            <li>Disaster Management</li>
+                            <li>Transportation Planning</li>
+                        </ul>""",
+                        course_id=course.id
+                    ),
+                    Module(
+                        order=5,
+                        title="Final Quiz",
+                        content="""<h2>Course Quiz</h2>
+                        <p>Test your knowledge of AI and ML in GIS with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>""",
+                        course_id=course.id
+                    )
+                ]
+                
+                for module in modules:
+                    db.session.add(module)
+                db.session.commit()
+                print("Created all modules")
+                
+                # Create quiz questions for the final module
+                quiz_module = Module.query.filter_by(order=5).first()
+                quiz_questions = [
+                    QuizQuestion(
+                        question_text="What is the primary goal of Artificial Intelligence?",
+                        option_a="To create machines that can think and learn like humans",
+                        option_b="To replace human workers with machines",
+                        option_c="To make computers faster than humans",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which of these is NOT a type of Machine Learning?",
+                        option_a="Supervised Learning",
+                        option_b="Unsupervised Learning",
+                        option_c="Manual Learning",
+                        correct_answer="c",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What is the main advantage of using AI in GIS?",
+                        option_a="Automated analysis of large spatial datasets",
+                        option_b="Making maps more colorful",
+                        option_c="Reducing the need for GPS devices",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which algorithm is commonly used for image classification in GIS?",
+                        option_a="Convolutional Neural Networks",
+                        option_b="Linear Regression",
+                        option_c="K-means Clustering",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What is the purpose of validation in machine learning?",
+                        option_a="To ensure the model performs well on unseen data",
+                        option_b="To make the model run faster",
+                        option_c="To reduce the size of the dataset",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which of these is an example of supervised learning?",
+                        option_a="Predicting house prices based on features",
+                        option_b="Grouping similar customers together",
+                        option_c="Finding patterns in unlabeled data",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What is the role of neural networks in GIS?",
+                        option_a="To process complex spatial patterns and relationships",
+                        option_b="To store geographic data",
+                        option_c="To create 3D models of buildings",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which of these is a common application of AI in urban planning?",
+                        option_a="Predicting traffic patterns and congestion",
+                        option_b="Designing building facades",
+                        option_c="Calculating property taxes",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What is the main challenge in implementing AI in GIS?",
+                        option_a="Data quality and availability",
+                        option_b="Computer processing speed",
+                        option_c="Internet connection speed",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="How does AI contribute to environmental monitoring?",
+                        option_a="By analyzing satellite imagery for changes",
+                        option_b="By replacing environmental sensors",
+                        option_c="By controlling weather patterns",
+                        correct_answer="a",
+                        module_id=quiz_module.id
+                    )
+                ]
+                
+                for question in quiz_questions:
+                    db.session.add(question)
+                db.session.commit()
+                print("Created quiz questions")
+            else:
+                print("Courses already exist, skipping creation")
+                
+        except Exception as e:
+            print(f"Error during initialization: {str(e)}")
+            db.session.rollback()
 
 # Initialize database
 init_db()
