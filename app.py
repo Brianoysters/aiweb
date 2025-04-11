@@ -1210,6 +1210,239 @@ def add_gis_course():
 
 # Add the GIS course
 add_gis_course()
+
+def add_prompt_engineering_course():
+    with app.app_context():
+        try:
+            # Check if course already exists
+            existing_course = Course.query.filter_by(title="Mastering Prompt Engineering for Generative AI").first()
+            if existing_course:
+                print("Prompt Engineering course already exists")
+                return
+
+            # Create the course
+            pe_course = Course(
+                title="Mastering Prompt Engineering for Generative AI",
+                description="Master the art of crafting effective prompts for generative AI models. Learn techniques for text, code, and image generation, and understand the ethical considerations in prompt engineering.",
+                duration="4 weeks",
+                mode="Online",
+                fee="KES 25,000",
+                is_active=True
+            )
+            db.session.add(pe_course)
+            db.session.commit()
+            print("Created Prompt Engineering course")
+
+            # Create modules for the course
+            modules = [
+                Module(
+                    order=1,
+                    title="Introduction to Prompt Engineering & LLM Communication",
+                    content="""<h2>Introduction to Prompt Engineering & LLM Communication</h2>
+                    <p><strong>Learning Objectives:</strong></p>
+                    <ul>
+                        <li>Understand what prompt engineering is</li>
+                        <li>Discover how prompts shape outputs from language models</li>
+                        <li>Learn the core differences between text generation and image generation prompts</li>
+                    </ul>
+                    
+                    <h3>Topics Covered:</h3>
+                    <ul>
+                        <li>What is prompt engineering?</li>
+                        <li>Differences in prompting LLMs vs image generation tools</li>
+                        <li>Importance of prompt structure and clarity</li>
+                        <li>Introduction to Zero-Shot, One-Shot, and Few-Shot prompting</li>
+                    </ul>
+                    
+                    <h3>Key Content:</h3>
+                    <p><a href="https://docs.google.com/document/d/1FbVguFk6N-q_tCmVJ-tm2-nSLyD3wbux_VjH86o4pyE/edit?usp=sharing" target="_blank">Module 1 Content</a></p>""",
+                    course_id=pe_course.id
+                ),
+                Module(
+                    order=2,
+                    title="Best Practices & the COSTAR Framework",
+                    content="""<h2>Best Practices & the COSTAR Framework</h2>
+                    <p><strong>Learning Objectives:</strong></p>
+                    <ul>
+                        <li>Master prompt crafting best practices</li>
+                        <li>Apply the COSTAR Framework to make prompts clear, specific, and goal-aligned</li>
+                    </ul>
+                    
+                    <h3>Topics Covered:</h3>
+                    <ul>
+                        <li>The importance of being explicit with your intent</li>
+                        <li>The COSTAR Framework: Context, Objective, Style, Tone, Audience, Requirements</li>
+                        <li>Decomposing complex tasks into sub-prompts</li>
+                    </ul>
+                    
+                    <h3>Key Content:</h3>
+                    <p><a href="https://docs.google.com/document/d/1FbVguFk6N-q_tCmVJ-tm2-nSLyD3wbux_VjH86o4pyE/edit?usp=sharing" target="_blank">Module 2 Content</a></p>""",
+                    course_id=pe_course.id
+                ),
+                Module(
+                    order=3,
+                    title="Prompting for Text, Code, and Image Generation",
+                    content="""<h2>Prompting for Text, Code, and Image Generation</h2>
+                    <p><strong>Learning Objectives:</strong></p>
+                    <ul>
+                        <li>Learn domain-specific prompting techniques for different outputs</li>
+                        <li>Understand how to guide models to write, code, or generate visuals</li>
+                    </ul>
+                    
+                    <h3>Topics Covered:</h3>
+                    <ul>
+                        <li>Prompting for writing (e.g., summaries, blog posts, stories)</li>
+                        <li>Prompting for coding tasks (e.g., debugging, writing functions)</li>
+                        <li>Prompting for image generation using structured descriptions</li>
+                        <li>Refining and iterating outputs</li>
+                    </ul>
+                    
+                    <h3>Key Content:</h3>
+                    <p><a href="https://docs.google.com/document/d/1FbVguFk6N-q_tCmVJ-tm2-nSLyD3wbux_VjH86o4pyE/edit?usp=sharing" target="_blank">Module 3 Content</a></p>""",
+                    course_id=pe_course.id
+                ),
+                Module(
+                    order=4,
+                    title="Advanced Techniques & Ethical Prompting",
+                    content="""<h2>Advanced Techniques & Ethical Prompting</h2>
+                    <p><strong>Learning Objectives:</strong></p>
+                    <ul>
+                        <li>Go beyond the basics with advanced prompting strategies</li>
+                        <li>Understand limitations and responsible use of LLMs</li>
+                    </ul>
+                    
+                    <h3>Topics Covered:</h3>
+                    <ul>
+                        <li>Iterative prompting and prompt chaining</li>
+                        <li>Instruction vs completion prompting</li>
+                        <li>Prompting for reasoning and decision-making</li>
+                        <li>Ethical concerns: bias, misuse, and hallucinations</li>
+                    </ul>
+                    
+                    <h3>Key Content:</h3>
+                    <p><a href="https://docs.google.com/document/d/1FbVguFk6N-q_tCmVJ-tm2-nSLyD3wbux_VjH86o4pyE/edit?usp=sharing" target="_blank">Module 4 Content</a></p>""",
+                    course_id=pe_course.id
+                ),
+                Module(
+                    order=5,
+                    title="Prompt Engineering Quiz",
+                    content="""<h2>Prompt Engineering Quiz</h2>
+                    <p>Test your knowledge of prompt engineering with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>""",
+                    course_id=pe_course.id
+                )
+            ]
+            
+            for module in modules:
+                db.session.add(module)
+            db.session.commit()
+            print("Created all modules for Prompt Engineering course")
+            
+            # Create quiz questions for the final module
+            quiz_module = Module.query.filter_by(course_id=pe_course.id, order=5).first()
+            quiz_questions = [
+                QuizQuestion(
+                    question_text="What is the main advantage of few-shot prompting over zero-shot prompting?",
+                    option_a="It saves more token space",
+                    option_b="It guarantees factual accuracy",
+                    option_c="It provides examples to guide the model",
+                    option_d="It randomizes output style",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="In the COSTAR framework, what does the 'C' stand for?",
+                    option_a="Completion",
+                    option_b="Context",
+                    option_c="Clarity",
+                    option_d="Character",
+                    correct_answer="b",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What does a prompt engineer do?",
+                    option_a="Writes code for AI training",
+                    option_b="Repairs broken AI models",
+                    option_c="Crafts effective instructions for LLMs",
+                    option_d="Designs AI chips",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which of the following best avoids hallucinations in LLM outputs?",
+                    option_a="Asking for sources and being specific",
+                    option_b="Letting the model decide the structure",
+                    option_c="Using abstract prompts",
+                    option_d="Avoiding all instructions",
+                    correct_answer="a",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which is an effective practice when prompting for writing tasks?",
+                    option_a="Use of sarcasm and irony",
+                    option_b="Leaving the format open-ended",
+                    option_c="Defining target audience and output type",
+                    option_d="Giving minimal context",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which is the best example of a clear instruction prompt?",
+                    option_a="'Just give me anything on climate.'",
+                    option_b="'Explain climate change like a scientist.'",
+                    option_c="'Summarize climate change in 5 bullet points for a high school audience.'",
+                    option_d="'Do your best with the topic of climate.'",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What is a major challenge in image generation prompting?",
+                    option_a="Using technical camera specs",
+                    option_b="Being too vague or overloaded with details",
+                    option_c="Adding numbers and lists",
+                    option_d="Referencing style only once",
+                    correct_answer="b",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Why is tone important in prompt engineering?",
+                    option_a="It replaces grammar rules",
+                    option_b="It makes prompts shorter",
+                    option_c="It guides the model's language style and mood",
+                    option_d="It affects model memory",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What is 'prompt chaining'?",
+                    option_a="Repeating the same prompt multiple times",
+                    option_b="Creating random prompts in bulk",
+                    option_c="Linking multiple smaller prompts to handle complex tasks",
+                    option_d="Embedding code inside a prompt",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What does 'zero-shot' prompting mean?",
+                    option_a="Providing three examples before asking a question",
+                    option_b="Asking a model to perform a task with no examples",
+                    option_c="Using an image to describe a task",
+                    option_d="Creating random outputs by chance",
+                    correct_answer="b",
+                    module_id=quiz_module.id
+                )
+            ]
+            
+            for question in quiz_questions:
+                db.session.add(question)
+            db.session.commit()
+            print("Created quiz questions for Prompt Engineering course")
+            
+        except Exception as e:
+            print(f"Error creating Prompt Engineering course: {str(e)}")
+            db.session.rollback()
+
+# Add the Prompt Engineering course
+add_prompt_engineering_course()
             
 if __name__ == '__main__':
     app.run(debug=True)
