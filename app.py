@@ -996,6 +996,220 @@ def verify_admin_user():
 
 # Verify admin user on startup
 verify_admin_user()
+
+def add_gis_course():
+    with app.app_context():
+        try:
+            # Check if course already exists
+            existing_course = Course.query.filter_by(title="GIS Fundamentals").first()
+            if existing_course:
+                print("GIS Fundamentals course already exists")
+                return
+
+            # Create the course
+            gis_course = Course(
+                title="GIS Fundamentals",
+                description="Master the fundamentals of Geographic Information Systems (GIS) through our comprehensive course covering key concepts, applications, and hands-on projects.",
+                duration="4 weeks",
+                mode="Online & Physical (Hybrid)",
+                fee="KES 12,000",
+                is_active=True
+            )
+            db.session.add(gis_course)
+            db.session.commit()
+            print("Created GIS Fundamentals course")
+
+            # Create modules for the course
+            modules = [
+                Module(
+                    order=1,
+                    title="Introduction to GIS",
+                    content="""<h2>Introduction to GIS</h2>
+                    <p><strong>Objective:</strong> Understand the foundational concepts of Geographic Information Systems (GIS), including spatial thinking and the role of GIS in modern applications</p>
+                    
+                    <h3>Topics:</h3>
+                    <ul>
+                        <li>Spatial Thinking</li>
+                        <li>Geographic Concept</li>
+                        <li>GIS for Today and Beyond</li>
+                    </ul>
+                    
+                    <h3>Reading:</h3>
+                    <p><a href="https://2012books.lardbucket.org/books/geographic-information-system-basics/s05-introduction.html" target="_blank">Chapter 1: Introduction</a></p>""",
+                    course_id=gis_course.id
+                ),
+                Module(
+                    order=2,
+                    title="Map Anatomy and Coordinate Systems",
+                    content="""<h2>Map Anatomy and Coordinate Systems</h2>
+                    <p><strong>Objective:</strong> Explore the components of maps, different map types, and the coordinate systems used in GIS.</p>
+                    
+                    <h3>Topics:</h3>
+                    <ul>
+                        <li>Maps and Map Types</li>
+                        <li>Map Scale, Coordinate Systems, and Map Projections</li>
+                        <li>Map Abstraction</li>
+                    </ul>
+                    
+                    <h3>Reading:</h3>
+                    <p><a href="https://2012books.lardbucket.org/books/geographic-information-system-basics/s06-map-anatomy.html" target="_blank">Chapter 2: Map Anatomy</a></p>""",
+                    course_id=gis_course.id
+                ),
+                Module(
+                    order=3,
+                    title="GIS Data Models",
+                    content="""<h2>GIS Data Models</h2>
+                    <p><strong>Objective:</strong> Understand the different data models used in GIS, including raster and vector models, and the role of satellite imagery.</p>
+                    
+                    <h3>Topics:</h3>
+                    <ul>
+                        <li>Raster Data Models</li>
+                        <li>Vector Data Models</li>
+                        <li>Satellite Imagery and Aerial Photography</li>
+                    </ul>
+                    
+                    <h3>Reading:</h3>
+                    <p><a href="https://2012books.lardbucket.org/books/geographic-information-system-basics/s08-data-models-for-gis.html" target="_blank">Chapter 3: Data Models for GIS</a></p>""",
+                    course_id=gis_course.id
+                ),
+                Module(
+                    order=4,
+                    title="Geospatial Data Management",
+                    content="""<h2>Geospatial Data Management</h2>
+                    <p><strong>Objective:</strong> Learn about acquiring geographic data, managing geospatial databases, understanding file formats, and ensuring data quality.</p>
+                    
+                    <h3>Topics:</h3>
+                    <ul>
+                        <li>Geographic Data Acquisition</li>
+                        <li>Geospatial Database Management</li>
+                        <li>File Formats</li>
+                        <li>Data Quality</li>
+                    </ul>
+                    
+                    <h3>Reading:</h3>
+                    <p><a href="https://2012books.lardbucket.org/books/geographic-information-system-basics/s09-geospatial-data-management.html" target="_blank">Chapter 4: Geospatial Data Management</a></p>""",
+                    course_id=gis_course.id
+                ),
+                Module(
+                    order=5,
+                    title="GIS Knowledge Check",
+                    content="""<h2>GIS Knowledge Check</h2>
+                    <p>Test your knowledge of GIS fundamentals with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>""",
+                    course_id=gis_course.id
+                )
+            ]
+            
+            for module in modules:
+                db.session.add(module)
+            db.session.commit()
+            print("Created all modules for GIS Fundamentals course")
+            
+            # Create quiz questions for the final module
+            quiz_module = Module.query.filter_by(course_id=gis_course.id, order=5).first()
+            quiz_questions = [
+                QuizQuestion(
+                    question_text="Which of the following is not a core component of a GIS?",
+                    option_a="Hardware",
+                    option_b="Software",
+                    option_c="People",
+                    option_d="Word processor",
+                    correct_answer="d",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="What type of map projection best represents the poles?",
+                    option_a="Cylindrical",
+                    option_b="Conic",
+                    option_c="Planar",
+                    option_d="Spherical",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which of the following is a key feature of raster data models?",
+                    option_a="Represent data with points and lines",
+                    option_b="Use grid cells to model spatial phenomena",
+                    option_c="Are ideal for representing roads and parcels",
+                    option_d="Store data in shapefiles",
+                    correct_answer="b",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which format is commonly used for storing vector GIS data?",
+                    option_a="JPEG",
+                    option_b="TIFF",
+                    option_c="Shapefile (.shp)",
+                    option_d="PNG",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which method is most suitable for acquiring land cover data over large areas?",
+                    option_a="Field surveying",
+                    option_b="Manual sketching",
+                    option_c="Remote sensing",
+                    option_d="Map annotation",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which factor best describes accuracy in GIS data quality?",
+                    option_a="The number of formats supported",
+                    option_b="The size of the dataset",
+                    option_c="How close data is to the true value",
+                    option_d="How many layers are stored",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which coordinate system is based on degrees of latitude and longitude?",
+                    option_a="UTM",
+                    option_b="Cartesian",
+                    option_c="Geographic Coordinate System (GCS)",
+                    option_d="Polar",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which of the following is a common application of GIS?",
+                    option_a="Text editing",
+                    option_b="Spreadsheet analysis",
+                    option_c="Urban planning",
+                    option_d="Social media networking",
+                    correct_answer="c",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which file format is used to store GIS map documents in ArcGIS?",
+                    option_a="DOCX",
+                    option_b="MXD",
+                    option_c="CSV",
+                    option_d="JPG",
+                    correct_answer="b",
+                    module_id=quiz_module.id
+                ),
+                QuizQuestion(
+                    question_text="Which of the following is a major benefit of using GIS?",
+                    option_a="Requires no data",
+                    option_b="Improves decision-making",
+                    option_c="Increases paperwork",
+                    option_d="Reduces computing needs",
+                    correct_answer="b",
+                    module_id=quiz_module.id
+                )
+            ]
+            
+            for question in quiz_questions:
+                db.session.add(question)
+            db.session.commit()
+            print("Created quiz questions for GIS Fundamentals course")
+            
+        except Exception as e:
+            print(f"Error creating GIS course: {str(e)}")
+            db.session.rollback()
+
+# Add the GIS course
+add_gis_course()
             
 if __name__ == '__main__':
     app.run(debug=True)
