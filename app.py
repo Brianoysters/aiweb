@@ -648,55 +648,33 @@ def download_certificate():
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        try:
-            if not current_user.is_authenticated:
-                print("Admin access denied: User not authenticated")
-                flash('Please login to access this page', 'error')
-                return redirect(url_for('login'))
-                
-            if not current_user.is_admin:
-                print(f"Admin access denied: User {current_user.username} is not an admin")
-                flash('You do not have permission to access this page', 'error')
-                return redirect(url_for('dashboard'))
-                
-            return f(*args, **kwargs)
-        except Exception as e:
-            print(f"Error in admin_required decorator: {str(e)}")
-            flash('An error occurred while checking admin permissions', 'error')
-            return redirect(url_for('dashboard'))
-    return decorated_function
-
-@app.route('/admin')
-@login_required
-@admin_required
-def admin_dashboard():
-    try:
-        # Check if user is authenticated and is admin
         if not current_user.is_authenticated:
-            flash('Please login to access the admin dashboard', 'error')
+            flash('Please login to access this page', 'error')
             return redirect(url_for('login'))
             
         if not current_user.is_admin:
             flash('You do not have permission to access this page', 'error')
             return redirect(url_for('dashboard'))
             
-        # Get all users and courses
-        users = User.query.all()
-        courses = Course.query.all()
-        
-        # Log the number of users and courses
-        print(f"Admin dashboard accessed by {current_user.username}")
-        print(f"Total users: {len(users)}")
-        print(f"Total courses: {len(courses)}")
-        
-        return render_template('admin/admin_dashboard.html', 
-                            users=users, 
-                            courses=courses)
-                            
-    except Exception as e:
-        print(f"Error in admin dashboard: {str(e)}")
-        flash('An error occurred while accessing the admin dashboard', 'error')
-        return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    # Get all users and courses
+    users = User.query.all()
+    courses = Course.query.all()
+    
+    # Log the number of users and courses
+    print(f"Admin dashboard accessed by {current_user.username}")
+    print(f"Total users: {len(users)}")
+    print(f"Total courses: {len(courses)}")
+    
+    return render_template('admin/admin_dashboard.html', 
+                         users=users, 
+                         courses=courses)
 
 @app.route('/admin/user/<int:user_id>/toggle_payment', methods=['POST'])
 @login_required
@@ -967,6 +945,42 @@ def init_db():
 
 # Initialize database
 init_db()
+
+def verify_admin_user():
+    with app.app_context():
+        try:
+            # Get the admin user
+            admin = User.query.filter_by(username='admin').first()
+            
+            if admin:
+                # Verify admin permissions
+                if not admin.is_admin:
+                    print("Fixing admin permissions...")
+                    admin.is_admin = True
+                    admin.is_paid = True
+                    db.session.commit()
+                    print("Admin permissions fixed")
+                else:
+                    print("Admin permissions are correct")
+            else:
+                print("Admin user not found, creating one...")
+                admin = User(
+                    username='admin',
+                    email='admin@example.com',
+                    password_hash=generate_password_hash('admin123', method='pbkdf2:sha256'),
+                    is_admin=True,
+                    is_paid=True
+                )
+                db.session.add(admin)
+                db.session.commit()
+                print("Admin user created")
+                
+        except Exception as e:
+            print(f"Error verifying admin user: {str(e)}")
+            db.session.rollback()
+
+# Verify admin user on startup
+verify_admin_user()
             
 if __name__ == '__main__':
     app.run(debug=True)
