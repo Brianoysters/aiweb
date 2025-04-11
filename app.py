@@ -112,8 +112,8 @@ class User(UserMixin, db.Model):
     is_paid = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     progress = db.relationship('Progress', backref='user', lazy=True)
-    enrolled_courses = db.relationship('Course', secondary='enrollment', lazy='subquery',
-        backref=db.backref('enrolled_users', lazy=True))
+    enrolled_courses = db.relationship('Course', secondary='enrollment', lazy='joined',
+        backref=db.backref('enrolled_users', lazy='joined'))
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -659,7 +659,8 @@ def admin_required(f):
 @admin_required
 def admin_dashboard():
     users = User.query.all()
-    return render_template('admin/dashboard.html', users=users)
+    courses = Course.query.all()
+    return render_template('admin/admin_dashboard.html', users=users, courses=courses)
 
 @app.route('/admin/user/<int:user_id>/toggle_payment', methods=['POST'])
 @login_required
