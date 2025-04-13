@@ -240,20 +240,33 @@
 
         /* Footer */
         .footer {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: #343a40;
             padding: 1.5rem 0;
             margin-top: auto;
         }
 
+        .footer h5 {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
         .footer a {
-            color: white;
-            text-decoration: none;
-            transition: opacity var(--transition-speed) ease;
+            transition: color 0.3s ease;
         }
 
         .footer a:hover {
-            opacity: 0.8;
+            color: #17a2b8 !important;
+        }
+
+        .footer i {
+            width: 20px;
+            text-align: center;
         }
 
         /* Responsive adjustments */
@@ -468,22 +481,24 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer" role="contentinfo">
+    <footer class="footer mt-auto py-3 bg-dark text-white">
         <div class="container">
             <div class="row">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">&copy; 2024 SUBOMAP AFRICA GEOSYSTEMS. All rights reserved.</p>
+                <div class="col-md-6">
+                    <h5>Contact Us</h5>
+                    <p class="mb-1">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:geo@subomapgeosystems.com" class="text-white text-decoration-none">
+                            geo@subomapgeosystems.com
+                        </a>
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Mon-Fri: 8am - 5pm
+                    </p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a href="https://facebook.com/subomap" class="me-3" aria-label="Facebook">
-                        <i class="fab fa-facebook" aria-hidden="true"></i>
-                    </a>
-                    <a href="https://twitter.com/subomap" class="me-3" aria-label="Twitter">
-                        <i class="fab fa-twitter" aria-hidden="true"></i>
-                    </a>
-                    <a href="https://linkedin.com/company/subomap" aria-label="LinkedIn">
-                        <i class="fab fa-linkedin" aria-hidden="true"></i>
-                    </a>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">&copy; 2024 Subomap Geosystems. All rights reserved.</p>
                 </div>
             </div>
         </div>
