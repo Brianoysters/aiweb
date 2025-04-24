@@ -22,5 +22,11 @@ ADD COLUMN `order` INT NOT NULL DEFAULT 1;
 ALTER TABLE progress
 ADD COLUMN completion_date DATETIME NULL;
 
+-- Fix quiz_result table
+ALTER TABLE quiz_result
+ADD COLUMN completion_date DATETIME NULL,
+ADD COLUMN next_attempt_available DATETIME NULL,
+ADD COLUMN attempt_number INT NOT NULL DEFAULT 1;
+
 -- Make first user admin and paid
 UPDATE user SET is_admin = TRUE, is_paid = TRUE WHERE id = 1; 

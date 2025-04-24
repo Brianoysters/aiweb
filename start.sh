@@ -7,6 +7,7 @@ export FLASK_ENV=production
 echo "Running database migrations..."
 python run_migration.py
 python fix_progress_table.py
+python fix_quiz_result_table.py
 
 # Start the gunicorn server
 echo "Starting gunicorn server..."

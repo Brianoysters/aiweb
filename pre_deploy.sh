@@ -11,4 +11,8 @@ python run_migration.py
 echo "Fixing progress table..."
 python fix_progress_table.py
 
+# Run the quiz result table fix script
+echo "Fixing quiz_result table..."
+python fix_quiz_result_table.py
+
 echo "Pre-deployment tasks completed successfully" 

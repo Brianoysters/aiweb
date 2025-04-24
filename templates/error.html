@@ -22,6 +22,9 @@
                         {% if user.is_authenticated %}
                             <li><a href="{{ url_for('dashboard_simple') }}">Try Simple Dashboard</a></li>
                             <li><a href="{{ url_for('courses') }}">Browse Courses</a></li>
+                            {% if 'Certificate' in message %}
+                                <li><a href="{{ url_for('certificate_simple') }}">Try Simplified Certificate</a></li>
+                            {% endif %}
                             <li><a href="{{ url_for('logout') }}">Logout</a></li>
                         {% else %}
                             <li><a href="{{ url_for('login') }}">Login</a></li>
@@ -32,7 +35,8 @@
                     <h3>For Administrators</h3>
                     <p>Please check the database schema or try running the migration scripts:</p>
                     <code>python run_migration.py</code><br>
-                    <code>python fix_progress_table.py</code>
+                    <code>python fix_progress_table.py</code><br>
+                    <code>python fix_quiz_result_table.py</code>
                 </div>
             </div>
         </div>

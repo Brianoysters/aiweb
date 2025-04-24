@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Certificate (Simple){% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow" style="border: 5px solid #003366;">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="mb-0">SUBOMAP AFRICA ACADEMY</h2>
+                </div>
+                <div class="card-body text-center">
+                    <h1 class="display-4 mb-4">Certificate of Completion</h1>
+                    
+                    <p class="lead">This is to certify that</p>
+                    <h2 class="display-5 mb-4">{{ user.username }}</h2>
+                    
+                    <p class="lead">has successfully completed the</p>
+                    <h3 class="display-6 mb-4">AI in Web GIS Course</h3>
+                    
+                    <p class="lead mb-4">at SUBOMAP AFRICA ACADEMY</p>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 offset-md-3">
+                            <div class="alert alert-info">
+                                <p><strong>Completion Date:</strong> {{ completion_date.strftime('%B %d, %Y') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="border-top border-dark pt-3">
+                                <p><strong>Course Director</strong></p>
+                                <p>Eng. Brian Otieno</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border-top border-dark pt-3">
+                                <p><strong>CEO</strong></p>
+                                <p>Boaz Odhiambo Nyakongo</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-muted mt-4">
+                        <small>Certificate #TEMP-{{ user.id }}-{{ completion_date.strftime('%Y%m%d') }}</small>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="text-warning mb-0">This is a temporary certificate for display purposes only.</p>
+                    <p class="text-warning mb-0">The download feature will be available once your quiz results are fully processed.</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

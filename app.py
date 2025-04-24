@@ -171,6 +171,30 @@ def fix_database_schema():
                     db.session.commit()
                     print("Added completion_date to progress table")
             
+            # Check and add missing columns to quiz_result table
+            if 'quiz_result' in existing_tables:
+                quiz_result_columns = db.session.execute(text("SHOW COLUMNS FROM quiz_result")).fetchall()
+                quiz_result_column_names = [col[0] for col in quiz_result_columns]
+                print(f"Existing quiz_result columns: {quiz_result_column_names}")
+                
+                missing_quiz_result_columns = []
+                
+                if 'completion_date' not in quiz_result_column_names:
+                    missing_quiz_result_columns.append("ADD COLUMN completion_date DATETIME NULL")
+                
+                if 'next_attempt_available' not in quiz_result_column_names:
+                    missing_quiz_result_columns.append("ADD COLUMN next_attempt_available DATETIME NULL")
+                
+                if 'attempt_number' not in quiz_result_column_names:
+                    missing_quiz_result_columns.append("ADD COLUMN attempt_number INT NOT NULL DEFAULT 1")
+                
+                if missing_quiz_result_columns:
+                    alter_quiz_result_query = f"ALTER TABLE quiz_result {', '.join(missing_quiz_result_columns)}"
+                    print(f"Executing: {alter_quiz_result_query}")
+                    db.session.execute(text(alter_quiz_result_query))
+                    db.session.commit()
+                    print("Added missing columns to quiz_result table")
+            
             # Make the first user an admin
             first_user = db.session.execute(text("SELECT id FROM user LIMIT 1")).fetchone()
             if first_user:
@@ -253,6 +277,14 @@ class QuizResult(db.Model):
     attempt_number = db.Column(db.Integer, default=1)
     completion_date = db.Column(db.DateTime, nullable=True)
     next_attempt_available = db.Column(db.DateTime, nullable=True)
+    
+    def __init__(self, user_id, score, passed=False, attempt_number=1, completion_date=None, next_attempt_available=None):
+        self.user_id = user_id
+        self.score = score
+        self.passed = passed
+        self.attempt_number = attempt_number
+        self.completion_date = completion_date
+        self.next_attempt_available = next_attempt_available
 
 class QuizQuestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -569,43 +601,53 @@ def submit_quiz():
 @app.route('/certificate')
 @login_required
 def certificate():
-    if not current_user.is_paid:
-        flash('Please complete your payment to access the certificate.', 'warning')
-        return redirect(url_for('dashboard'))
-    
-    # Get the latest quiz result
-    latest_result = QuizResult.query.filter_by(
-        user_id=current_user.id,
-        passed=True
-    ).order_by(QuizResult.completion_date.desc()).first()
-    
-    if not latest_result:
-        flash('You need to pass the quiz to get a certificate.', 'warning')
-        return redirect(url_for('dashboard'))
+    try:
+        if not current_user.is_paid:
+            flash('Please complete your payment to access the certificate.', 'warning')
+            return redirect(url_for('dashboard'))
         
-    # First show the score and certificate preview
-    return render_template('certificate.html', 
-                         score=latest_result.score,
-                         completion_date=latest_result.completion_date)
+        # Get the latest quiz result
+        latest_result = QuizResult.query.filter_by(
+            user_id=current_user.id,
+            passed=True
+        ).order_by(QuizResult.completion_date.desc()).first()
+        
+        if not latest_result:
+            flash('You need to pass the quiz to get a certificate.', 'warning')
+            return redirect(url_for('dashboard'))
+            
+        # First show the score and certificate preview
+        return render_template('certificate.html', 
+                            score=latest_result.score,
+                            completion_date=latest_result.completion_date)
+    except Exception as e:
+        # Log the error
+        app.logger.error(f"Certificate error: {str(e)}")
+        
+        # Show error page with helpful message
+        return render_template('error.html', 
+                            message="Certificate Error",
+                            error="There was an error generating your certificate. This may be due to missing database columns.",
+                            user=current_user), 500
 
 @app.route('/download_certificate')
 @login_required
 def download_certificate():
-    if not current_user.is_paid:
-        flash('Please complete your payment to download the certificate.', 'warning')
-        return redirect(url_for('dashboard'))
-    
-    # Get the latest quiz result
-    latest_result = QuizResult.query.filter_by(
-        user_id=current_user.id,
-        passed=True
-    ).order_by(QuizResult.completion_date.desc()).first()
-    
-    if not latest_result:
-        flash('You need to pass the quiz to get a certificate.', 'warning')
-        return redirect(url_for('dashboard'))
-    
     try:
+        if not current_user.is_paid:
+            flash('Please complete your payment to download the certificate.', 'warning')
+            return redirect(url_for('dashboard'))
+        
+        # Get the latest quiz result
+        latest_result = QuizResult.query.filter_by(
+            user_id=current_user.id,
+            passed=True
+        ).order_by(QuizResult.completion_date.desc()).first()
+        
+        if not latest_result:
+            flash('You need to pass the quiz to get a certificate.', 'warning')
+            return redirect(url_for('dashboard'))
+        
         # Create certificate
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=letter)
@@ -747,9 +789,14 @@ def download_certificate():
         return response
         
     except Exception as e:
-        app.logger.error(f"Certificate generation error: {str(e)}")
-        flash('Error generating certificate. Please try again later.', 'error')
-        return redirect(url_for('dashboard'))
+        # Log the error
+        app.logger.error(f"Download certificate error: {str(e)}")
+        
+        # Show error page with helpful message
+        return render_template('error.html', 
+                            message="Certificate Download Error",
+                            error="There was an error generating your certificate PDF. This may be due to database issues or PDF generation errors.",
+                            user=current_user), 500
 
 def admin_required(f):
     @wraps(f)
@@ -1323,6 +1370,12 @@ try:
     print("Imported dashboard fallback routes")
 except Exception as e:
     print(f"Error importing dashboard fallback: {str(e)}")
+
+try:
+    import certificate_fallback
+    print("Imported certificate fallback routes")
+except Exception as e:
+    print(f"Error importing certificate fallback: {str(e)}")
 
 @app.errorhandler(500)
 def internal_error(error):

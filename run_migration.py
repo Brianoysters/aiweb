@@ -157,6 +157,30 @@ def fix_database_schema():
                     db.session.commit()
                     print("Added completion_date to progress table")
             
+            # Check and add missing columns to quiz_result table
+            if 'quiz_result' in existing_tables:
+                quiz_result_columns = db.session.execute(text("SHOW COLUMNS FROM quiz_result")).fetchall()
+                quiz_result_column_names = [col[0] for col in quiz_result_columns]
+                print(f"Existing quiz_result columns: {quiz_result_column_names}")
+                
+                missing_quiz_result_columns = []
+                
+                if 'completion_date' not in quiz_result_column_names:
+                    missing_quiz_result_columns.append("ADD COLUMN completion_date DATETIME NULL")
+                
+                if 'next_attempt_available' not in quiz_result_column_names:
+                    missing_quiz_result_columns.append("ADD COLUMN next_attempt_available DATETIME NULL")
+                
+                if 'attempt_number' not in quiz_result_column_names:
+                    missing_quiz_result_columns.append("ADD COLUMN attempt_number INT NOT NULL DEFAULT 1")
+                
+                if missing_quiz_result_columns:
+                    alter_quiz_result_query = f"ALTER TABLE quiz_result {', '.join(missing_quiz_result_columns)}"
+                    print(f"Executing: {alter_quiz_result_query}")
+                    db.session.execute(text(alter_quiz_result_query))
+                    db.session.commit()
+                    print("Added missing columns to quiz_result table")
+            
             # Make the first user an admin
             first_user = db.session.execute(text("SELECT id FROM user LIMIT 1")).fetchone()
             if first_user:
