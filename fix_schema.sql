@@ -18,5 +18,9 @@ ADD COLUMN date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN doc_link VARCHAR(500) NULL,
 ADD COLUMN `order` INT NOT NULL DEFAULT 1;
 
+-- Fix progress table
+ALTER TABLE progress
+ADD COLUMN completion_date DATETIME NULL;
+
 -- Make first user admin and paid
 UPDATE user SET is_admin = TRUE, is_paid = TRUE WHERE id = 1; 
