@@ -1,106 +1,128 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - AI in Web GIS{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- User's Enrolled Courses -->
-    <div class="col-md-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4 class="mb-0">My Courses</h4>
-            </div>
-            <div class="card-body">
-                {% if current_user.enrolled_courses %}
-                    <div class="row">
-                        {% for course in current_user.enrolled_courses %}
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ course.title }}</h5>
-                                        <p class="card-text">{{ course.description[:100] }}...</p>
-                                        <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-primary">Continue Learning</a>
+<div class="container my-4">
+
+    {% if simple_mode %}
+    <div class="alert alert-warning">
+        <strong>Notice:</strong> Running in simplified mode due to potential database migration issues. Some features may not be available.
+        <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-info ml-2">Try Standard Dashboard</a>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- User's Enrolled Courses -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">My Courses</h4>
+                </div>
+                <div class="card-body">
+                    {% if current_user.enrolled_courses %}
+                        <div class="row">
+                            {% for course in current_user.enrolled_courses %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ course.title }}</h5>
+                                            <p class="card-text">{{ course.description[:100] }}...</p>
+                                            <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-primary">Continue Learning</a>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-center">You haven't enrolled in any courses yet.</p>
-                    <div class="text-center">
-                        <a href="{{ url_for('courses') }}" class="btn btn-primary">Browse Courses</a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Tutor Information -->
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4 class="mb-0">Our Tutors</h4>
-            </div>
-            <div class="card-body">
-                <div class="tutor-list">
-                    <!-- Tutor 1 -->
-                    <div class="tutor-item mb-3">
-                        <h5 class="tutor-name">Eng Brian Otieno</h5>
-                        <p class="tutor-courses">Courses: WEB DESIGN, GIS, CIVIL 3D</p>
-                        <p class="tutor-contact">Contact: sirotienootienobrian@gmail.com</p>
-                    </div>
-
-                    <!-- Tutor 2 -->
-                    <div class="tutor-item mb-3">
-                        <h5 class="tutor-name">Eng Boaz Odhiambo</h5>
-                        <p class="tutor-courses">Courses: GIS, 3D MAPPING, LAND SURVEY, CIVIL 3D</p>
-                        <p class="tutor-contact">Contact: boaznyakongo99@gmail.com</p>
-                    </div>
-
-                    <!-- Tutor 3 -->
-                    <div class="tutor-item mb-3">
-                        <h5 class="tutor-name">Eng Sure Kondiwa</h5>
-                        <p class="tutor-courses">Courses: WEB DESIGN AND DEVELOPMENT</p>
-                        <p class="tutor-contact">Contact: surekondiwa@gmail.com</p>
-                    </div>
-
-                    <!-- Tutor 4 -->
-                    <div class="tutor-item mb-3">
-                        <h5 class="tutor-name">Eng Kennedy Mayor</h5>
-                        <p class="tutor-courses">Courses: WEB DESIGN, CIVIL 3D</p>
-                        <p class="tutor-contact">Contact: kenedymayor@gmail.com</p>
-                    </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center">You haven't enrolled in any courses yet.</p>
+                        <div class="text-center">
+                            <a href="{{ url_for('courses') }}" class="btn btn-primary">Browse Courses</a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Progress Overview -->
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0">Progress Overview</h4>
+        <!-- Tutor Information -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Our Tutors</h4>
+                </div>
+                <div class="card-body">
+                    <div class="tutor-list">
+                        <!-- Tutor 1 -->
+                        <div class="tutor-item mb-3">
+                            <h5 class="tutor-name">Eng Brian Otieno</h5>
+                            <p class="tutor-courses">Courses: WEB DESIGN, GIS, CIVIL 3D</p>
+                            <p class="tutor-contact">Contact: sirotienootienobrian@gmail.com</p>
+                        </div>
+
+                        <!-- Tutor 2 -->
+                        <div class="tutor-item mb-3">
+                            <h5 class="tutor-name">Eng Boaz Odhiambo</h5>
+                            <p class="tutor-courses">Courses: GIS, 3D MAPPING, LAND SURVEY, CIVIL 3D</p>
+                            <p class="tutor-contact">Contact: boaznyakongo99@gmail.com</p>
+                        </div>
+
+                        <!-- Tutor 3 -->
+                        <div class="tutor-item mb-3">
+                            <h5 class="tutor-name">Eng Sure Kondiwa</h5>
+                            <p class="tutor-courses">Courses: WEB DESIGN AND DEVELOPMENT</p>
+                            <p class="tutor-contact">Contact: surekondiwa@gmail.com</p>
+                        </div>
+
+                        <!-- Tutor 4 -->
+                        <div class="tutor-item mb-3">
+                            <h5 class="tutor-name">Eng Kennedy Mayor</h5>
+                            <p class="tutor-courses">Courses: WEB DESIGN, CIVIL 3D</p>
+                            <p class="tutor-contact">Contact: kenedymayor@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {% if current_user.progress %}
-                    <div class="progress-list">
-                        {% for progress in current_user.progress %}
-                            <div class="progress-item mb-3">
-                                <h6>{{ progress.module.title }}</h6>
-                                <div class="progress">
-                                    <div class="progress-bar {% if progress.completed %}bg-success{% else %}bg-warning{% endif %}" 
-                                         role="progressbar" 
-                                         style="width: {% if progress.completed %}100{% else %}50{% endif %}%">
-                                        {% if progress.completed %}Completed{% else %}In Progress{% endif %}
+
+            <!-- Progress Overview -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Progress Overview</h4>
+                </div>
+                <div class="card-body">
+                    {% if current_user.progress %}
+                        <div class="progress-list">
+                            {% for progress in current_user.progress %}
+                                <div class="progress-item mb-3">
+                                    <h6>{{ progress.module.title }}</h6>
+                                    <div class="progress">
+                                        <div class="progress-bar {% if progress.completed %}bg-success{% else %}bg-warning{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {% if progress.completed %}100{% else %}50{% endif %}%">
+                                            {% if progress.completed %}Completed{% else %}In Progress{% endif %}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-center">No progress recorded yet.</p>
-                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center">No progress recorded yet.</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
+
+    {% if current_user.progress and not simple_mode %}
+    <!-- Progress Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0"><i class="fas fa-chart-line"></i> Your Progress</h3>
+        </div>
+        <div class="card-body">
+            <!-- Progress content here -->
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <style>

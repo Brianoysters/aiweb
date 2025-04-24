@@ -142,6 +142,21 @@ def fix_database_schema():
                     db.session.commit()
                     print("Added missing columns to module table")
             
+            # Check and add missing columns to progress table
+            if 'progress' in existing_tables:
+                progress_columns = db.session.execute(text("SHOW COLUMNS FROM progress")).fetchall()
+                progress_column_names = [col[0] for col in progress_columns]
+                print(f"Existing progress columns: {progress_column_names}")
+                
+                if 'completion_date' not in progress_column_names:
+                    print("Adding completion_date column to progress table...")
+                    db.session.execute(text("""
+                        ALTER TABLE progress
+                        ADD COLUMN completion_date DATETIME NULL
+                    """))
+                    db.session.commit()
+                    print("Added completion_date to progress table")
+            
             # Make the first user an admin
             first_user = db.session.execute(text("SELECT id FROM user LIMIT 1")).fetchone()
             if first_user:

@@ -156,6 +156,21 @@ def fix_database_schema():
                     db.session.commit()
                     print("Added missing columns to module table")
             
+            # Check and add missing columns to progress table
+            if 'progress' in existing_tables:
+                progress_columns = db.session.execute(text("SHOW COLUMNS FROM progress")).fetchall()
+                progress_column_names = [col[0] for col in progress_columns]
+                print(f"Existing progress columns: {progress_column_names}")
+                
+                if 'completion_date' not in progress_column_names:
+                    print("Adding completion_date column to progress table...")
+                    db.session.execute(text("""
+                        ALTER TABLE progress
+                        ADD COLUMN completion_date DATETIME NULL
+                    """))
+                    db.session.commit()
+                    print("Added completion_date to progress table")
+            
             # Make the first user an admin
             first_user = db.session.execute(text("SELECT id FROM user LIMIT 1")).fetchone()
             if first_user:
@@ -223,6 +238,12 @@ class Progress(db.Model):
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
     completed = db.Column(db.Boolean, default=False)
     completion_date = db.Column(db.DateTime, nullable=True)
+    
+    def __init__(self, user_id, module_id, completed=False, completion_date=None):
+        self.user_id = user_id
+        self.module_id = module_id
+        self.completed = completed
+        self.completion_date = completion_date
 
 class QuizResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -307,19 +328,26 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get all available courses
-    courses = Course.query.filter_by(is_active=True).all()
-    
-    # Get all admin users for the admin section
-    admins = User.query.filter_by(is_admin=True).all()
-    
-    # Get user's enrolled courses
-    enrolled_courses = [c.id for c in current_user.enrolled_courses]
-    
-    return render_template('dashboard.html', 
-                         courses=courses,
-                         admins=admins,
-                         enrolled_courses=enrolled_courses)
+    try:
+        # Get all available courses
+        courses = Course.query.filter_by(is_active=True).all()
+        
+        # Get all admin users for the admin section
+        admins = User.query.filter_by(is_admin=True).all()
+        
+        # Get user's enrolled courses
+        enrolled_courses = [c.id for c in current_user.enrolled_courses]
+        
+        return render_template('dashboard.html', 
+                            courses=courses,
+                            admins=admins,
+                            enrolled_courses=enrolled_courses)
+    except Exception as e:
+        # Log the error
+        app.logger.error(f"Dashboard error: {str(e)}")
+        
+        # Redirect to the simple dashboard as a fallback
+        return redirect(url_for('dashboard_simple'))
 
 @app.route('/course/<int:course_id>')
 @login_required
@@ -1288,6 +1316,21 @@ def add_gis_course():
 
 # Add the GIS course
 add_gis_course()
-            
+
+# Import fallback routes
+try:
+    import dashboard_fallback
+    print("Imported dashboard fallback routes")
+except Exception as e:
+    print(f"Error importing dashboard fallback: {str(e)}")
+
+@app.errorhandler(500)
+def internal_error(error):
+    app.logger.error(f"Internal Server Error: {str(error)}")
+    return render_template('error.html', 
+                         message="Internal Server Error",
+                         error="The server encountered an error. Please try again later or contact support.",
+                         user=current_user if current_user.is_authenticated else None), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
