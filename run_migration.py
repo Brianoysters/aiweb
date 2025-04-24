@@ -108,6 +108,9 @@ def fix_database_schema():
                 if 'date_created' not in course_column_names:
                     missing_columns.append("ADD COLUMN date_created DATETIME DEFAULT CURRENT_TIMESTAMP")
                 
+                if 'is_active' not in course_column_names:
+                    missing_columns.append("ADD COLUMN is_active BOOLEAN DEFAULT TRUE")
+                
                 if missing_columns:
                     alter_query = f"ALTER TABLE course {', '.join(missing_columns)}"
                     print(f"Executing: {alter_query}")
@@ -121,25 +124,23 @@ def fix_database_schema():
                 module_column_names = [col[0] for col in module_columns]
                 print(f"Existing module columns: {module_column_names}")
                 
+                missing_module_columns = []
+                
                 if 'date_created' not in module_column_names:
-                    print("Adding date_created column to module table...")
-                    db.session.execute(text("""
-                        ALTER TABLE module
-                        ADD COLUMN date_created DATETIME DEFAULT CURRENT_TIMESTAMP
-                    """))
-                    
-                    db.session.commit()
-                    print("Added date_created to module table")
+                    missing_module_columns.append("ADD COLUMN date_created DATETIME DEFAULT CURRENT_TIMESTAMP")
                 
                 if 'doc_link' not in module_column_names:
-                    print("Adding doc_link column to module table...")
-                    db.session.execute(text("""
-                        ALTER TABLE module
-                        ADD COLUMN doc_link VARCHAR(500) NULL
-                    """))
-                    
+                    missing_module_columns.append("ADD COLUMN doc_link VARCHAR(500) NULL")
+                
+                if 'order' not in module_column_names:
+                    missing_module_columns.append("ADD COLUMN `order` INT NOT NULL DEFAULT 1")
+                
+                if missing_module_columns:
+                    alter_module_query = f"ALTER TABLE module {', '.join(missing_module_columns)}"
+                    print(f"Executing: {alter_module_query}")
+                    db.session.execute(text(alter_module_query))
                     db.session.commit()
-                    print("Added doc_link to module table")
+                    print("Added missing columns to module table")
             
             # Make the first user an admin
             first_user = db.session.execute(text("SELECT id FROM user LIMIT 1")).fetchone()

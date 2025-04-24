@@ -3,7 +3,10 @@ services:
     name: subomap-academy
     env: python
     plan: starter
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      chmod +x pre_deploy.sh
+      ./pre_deploy.sh
     startCommand: ./start.sh
     envVars:
       - key: DATABASE_URL
