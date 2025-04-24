@@ -13,12 +13,17 @@ from functools import wraps
 from sqlalchemy import text
 import time
 from io import BytesIO
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env file
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
-# NEW app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:RlnjaHZoFYoaoxssxFHKtLFQlvwqninP@yamanote.proxy.rlwy.net:17657/railway'
-# OLD 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+
+# Use hardcoded value temporarily for Railway MySQL deployment
+DATABASE_URL = "mysql://root:RlnjaHZoFYoaoxssxFHKtLFQlvwqninP@yamanote.proxy.rlwy.net:17657/railway"
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -51,53 +56,113 @@ def wait_for_db():
                 print("Max retries reached. Could not connect to the database.")
                 return False
 
-def initialize_db():
+def fix_database_schema():
     if not wait_for_db():
         return
-        
+
     try:
-        # Check if columns already exist
-        columns = db.session.execute(text("""
-            SHOW COLUMNS FROM user
-        """)).fetchall()
+        # Check if tables exist
+        inspector = db.inspect(db.engine)
+        existing_tables = inspector.get_table_names()
         
-        column_names = [col[0] for col in columns]
-        
-        if 'is_admin' not in column_names:
-            print("Adding is_admin column...")
-            db.session.execute(text("""
-                ALTER TABLE user 
-                ADD COLUMN is_admin BOOLEAN DEFAULT FALSE
-            """))
-        
-        if 'is_paid' not in column_names:
-            print("Adding is_paid column...")
-            db.session.execute(text("""
-                ALTER TABLE user 
-                ADD COLUMN is_paid BOOLEAN DEFAULT FALSE
-            """))
-        
-        db.session.commit()
-        print("Successfully added admin and payment columns")
-        
-        # Make the first user an admin
-        first_user = db.session.execute(text("SELECT id FROM user LIMIT 1")).fetchone()
-        if first_user:
-            db.session.execute(text("""
-                UPDATE user 
-                SET is_admin = TRUE 
-                WHERE id = :user_id
-            """), {"user_id": first_user[0]})
-            db.session.commit()
-            print("Made first user an admin")
+        if not existing_tables:
+            # Create all tables if they don't exist
+            print("No tables found. Creating all tables...")
+            db.create_all()
+            print("Created all tables with new schema")
+        else:
+            print(f"Existing tables: {existing_tables}")
             
+            # Check and add missing columns to user table
+            if 'user' in existing_tables:
+                user_columns = db.session.execute(text("SHOW COLUMNS FROM user")).fetchall()
+                user_column_names = [col[0] for col in user_columns]
+                print(f"Existing user columns: {user_column_names}")
+                
+                if 'is_admin' not in user_column_names:
+                    print("Adding is_admin column to user table...")
+                    db.session.execute(text("""
+                        ALTER TABLE user 
+                        ADD COLUMN is_admin BOOLEAN DEFAULT FALSE
+                    """))
+                
+                if 'is_paid' not in user_column_names:
+                    print("Adding is_paid column to user table...")
+                    db.session.execute(text("""
+                        ALTER TABLE user 
+                        ADD COLUMN is_paid BOOLEAN DEFAULT FALSE
+                    """))
+                
+                if 'date_created' not in user_column_names:
+                    print("Adding date_created column to user table...")
+                    db.session.execute(text("""
+                        ALTER TABLE user
+                        ADD COLUMN date_created DATETIME DEFAULT CURRENT_TIMESTAMP
+                    """))
+                
+                db.session.commit()
+                print("Added missing columns to user table")
+            
+            # Check and add missing columns to course table
+            if 'course' in existing_tables:
+                course_columns = db.session.execute(text("SHOW COLUMNS FROM course")).fetchall()
+                course_column_names = [col[0] for col in course_columns]
+                print(f"Existing course columns: {course_column_names}")
+                
+                missing_columns = []
+                if 'duration' not in course_column_names:
+                    missing_columns.append("ADD COLUMN duration VARCHAR(50) NOT NULL DEFAULT '8 weeks'")
+                
+                if 'mode' not in course_column_names:
+                    missing_columns.append("ADD COLUMN mode VARCHAR(50) NOT NULL DEFAULT 'Online'")
+                
+                if 'fee' not in course_column_names:
+                    missing_columns.append("ADD COLUMN fee VARCHAR(50) NOT NULL DEFAULT 'KES 15,000'")
+                
+                if 'date_created' not in course_column_names:
+                    missing_columns.append("ADD COLUMN date_created DATETIME DEFAULT CURRENT_TIMESTAMP")
+                
+                if missing_columns:
+                    alter_query = f"ALTER TABLE course {', '.join(missing_columns)}"
+                    print(f"Executing: {alter_query}")
+                    db.session.execute(text(alter_query))
+                    db.session.commit()
+                    print("Added missing columns to course table")
+            
+            # Check and add missing columns to module table
+            if 'module' in existing_tables:
+                module_columns = db.session.execute(text("SHOW COLUMNS FROM module")).fetchall()
+                module_column_names = [col[0] for col in module_columns]
+                print(f"Existing module columns: {module_column_names}")
+                
+                if 'date_created' not in module_column_names:
+                    print("Adding date_created column to module table...")
+                    db.session.execute(text("""
+                        ALTER TABLE module
+                        ADD COLUMN date_created DATETIME DEFAULT CURRENT_TIMESTAMP
+                    """))
+                    
+                    db.session.commit()
+                    print("Added date_created to module table")
+            
+            # Make the first user an admin
+            first_user = db.session.execute(text("SELECT id FROM user LIMIT 1")).fetchone()
+            if first_user:
+                db.session.execute(text("""
+                    UPDATE user 
+                    SET is_admin = TRUE 
+                    WHERE id = :user_id
+                """), {"user_id": first_user[0]})
+                db.session.commit()
+                print("Made first user an admin")
+                
     except Exception as e:
         print(f"Error during initialization: {str(e)}")
         db.session.rollback()
 
-# Run initialization when the app starts
+# Run schema fixing when the app starts
 with app.app_context():
-    initialize_db()
+    fix_database_schema()
 
 # Define the enrollment table
 enrollment = db.Table('enrollment',

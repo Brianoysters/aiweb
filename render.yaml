@@ -1,22 +1,19 @@
 services:
   - type: web
-    name: flask-app
+    name: subomap-academy
     env: python
-    buildCommand: |
-      python -m pip install --upgrade pip
-      pip install --no-cache-dir -r requirements.txt
-    startCommand: gunicorn app:app
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: ./start.sh
     envVars:
       - key: DATABASE_URL
-        value: mysql+pymysql://root:hHqxqLIMvuNqKHjzAPNwVpgqJitEJhrM@gondola.proxy.rlwy.net:41520/railway
+        value: "mysql://root:RlnjaHZoFYoaoxssxFHKtLFQlvwqninP@yamanote.proxy.rlwy.net:17657/railway"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: LOG_TO_STDOUT
+        value: true
       - key: FLASK_ENV
         value: production
-      - key: FLASK_APP
-        value: app.py
-      - key: FLASK_DEBUG
-        value: 0
-      - key: SECRET_KEY
-        value: your-secret-key-here
 
 databases:
   - name: subomap-db
