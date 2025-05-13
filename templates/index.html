@@ -1,8 +1,147 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .featured-courses {
+        background: linear-gradient(to right, #f8f9fa, #e9ecef);
+        padding: 2rem 0;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 3rem;
+    }
+    
+    .featured-courses .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .featured-courses .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .featured-courses .card-img-top {
+        height: 300px;
+        object-fit: cover;
+        border-bottom: 3px solid #007bff;
+    }
+    
+    .featured-courses .card-body {
+        padding: 1.5rem;
+    }
+    
+    .featured-courses .card-title {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .featured-courses .card-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    .featured-courses .btn {
+        padding: 0.6rem 1.5rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: 5px;
+    }
+    
+    .featured-courses .btn-primary {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+    }
+    
+    .featured-courses .btn-primary:hover {
+        background: linear-gradient(45deg, #0056b3, #003d82);
+        transform: translateY(-2px);
+    }
+    
+    .featured-courses .text-muted {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .featured-courses h2 {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        position: relative;
+        padding-bottom: 1rem;
+    }
+    
+    .featured-courses h2:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: linear-gradient(to right, #007bff, #0056b3);
+        border-radius: 3px;
+    }
+</style>
+
 <div class="container mt-5">
-    <h1 class="text-center mb-4">Available Courses</h1>
+    <!-- Course Flyers Section -->
+    <div class="featured-courses">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="text-center">Featured Courses</h2>
+            </div>
+            {% if web_dev_course %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <img src="{{ url_for('static', filename='subo1.jpg') }}" class="card-img-top" alt="Web Development Crash Course">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ web_dev_course.title }}</h5>
+                        <p class="card-text">{{ web_dev_course.description }}</p>
+                        <p class="card-text"><small class="text-muted">Duration: {{ web_dev_course.duration }} | Fee: {{ web_dev_course.fee }}</small></p>
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.is_paid %}
+                                <a href="{{ url_for('course', course_id=web_dev_course.id) }}" class="btn btn-primary">View Course</a>
+                            {% else %}
+                                <button class="btn btn-secondary" disabled>Complete Payment to Access</button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-primary">Login to View</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if civil3d_course %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <img src="{{ url_for('static', filename='subo2.jpg') }}" class="card-img-top" alt="AutoCAD Civil 3D Crash Course">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ civil3d_course.title }}</h5>
+                        <p class="card-text">{{ civil3d_course.description }}</p>
+                        <p class="card-text"><small class="text-muted">Duration: {{ civil3d_course.duration }} | Fee: {{ civil3d_course.fee }}</small></p>
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.is_paid %}
+                                <a href="{{ url_for('course', course_id=civil3d_course.id) }}" class="btn btn-primary">View Course</a>
+                            {% else %}
+                                <button class="btn btn-secondary" disabled>Complete Payment to Access</button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-primary">Login to View</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- All Courses Section -->
+    <h1 class="text-center mb-4">All Available Courses</h1>
     <div class="row">
         {% for course in courses %}
         <div class="col-md-4 mb-4">

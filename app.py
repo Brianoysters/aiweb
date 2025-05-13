@@ -309,7 +309,14 @@ def load_user(user_id):
 @app.route('/')
 def index():
     courses = Course.query.filter_by(is_active=True).all()
-    return render_template('index.html', courses=courses)
+    # Get the two specific courses for flyers
+    web_dev_course = Course.query.filter_by(title="Web Development Crash Course").first()
+    civil3d_course = Course.query.filter_by(title="AutoCAD Civil 3D Crash Course").first()
+    
+    return render_template('index.html', 
+                         courses=courses,
+                         web_dev_course=web_dev_course,
+                         civil3d_course=civil3d_course)
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -1363,6 +1370,907 @@ def add_gis_course():
 
 # Add the GIS course
 add_gis_course()
+
+def add_web_dev_and_civil3d_courses():
+    with app.app_context():
+        try:
+            # Check if courses already exist
+            if Course.query.filter_by(title="Web Development Crash Course").first():
+                print("Web Development course already exists")
+            else:
+                # Create Web Development course
+                web_dev_course = Course(
+                    title="Web Development Crash Course",
+                    description="Build and deploy a complete dynamic web application using core technologies. Learn HTML, CSS, JavaScript, PHP, and MySQL in this comprehensive crash course.",
+                    duration="4 weeks",
+                    mode="Online & Physical (Hybrid)",
+                    fee="KES 15,000",
+                    is_active=True
+                )
+                db.session.add(web_dev_course)
+                db.session.commit()
+                print("Created Web Development Crash Course")
+
+                # Create modules for Web Development course
+                web_dev_modules = [
+                    Module(
+                        order=1,
+                        title="Frontend Foundations",
+                        content="""<h2>Frontend Foundations – HTML, CSS, and JavaScript Basics</h2>
+                        <p><strong>Week 1 Theme:</strong> Learn how the web works and build your first static website.</p>
+                        
+                        <h3>Key Topics:</h3>
+                        <ul>
+                            <li>Introduction to Web Development (How the web works, Frontend vs Backend)</li>
+                            <li>HTML Essentials: Tags, forms, tables, media, links</li>
+                            <li>CSS Basics: Selectors, box model, backgrounds, typography</li>
+                            <li>JavaScript Basics: Variables, data types, operators, events, functions</li>
+                        </ul>
+                        
+                        <h3>Activities:</h3>
+                        <ul>
+                            <li>Create a personal homepage (HTML)</li>
+                            <li>Add styling with CSS (fonts, layout, colors)</li>
+                            <li>Add a button with JavaScript interaction</li>
+                        </ul>
+                        
+                        <h3>Recommended Resources:</h3>
+                        <ul>
+                            <li>HTML Basics – MDN</li>
+                            <li>CSS Fundamentals – MDN</li>
+                            <li>JavaScript Introduction – MDN</li>
+                        </ul>""",
+                        course_id=web_dev_course.id
+                    ),
+                    Module(
+                        order=2,
+                        title="Responsive Design & JavaScript Interactivity",
+                        content="""<h2>Responsive Design & JavaScript Interactivity</h2>
+                        <p><strong>Week 2 Theme:</strong> Make your site dynamic and adaptable.</p>
+                        
+                        <h3>Key Topics:</h3>
+                        <ul>
+                            <li>Advanced CSS: Flexbox, Grid, Media Queries</li>
+                            <li>JavaScript DOM Manipulation</li>
+                            <li>Event listeners, form inputs, conditionals, loops</li>
+                            <li>Debugging JavaScript with browser DevTools</li>
+                        </ul>
+                        
+                        <h3>Activities:</h3>
+                        <ul>
+                            <li>Build a responsive navigation bar using Flexbox</li>
+                            <li>Interactive To-Do List with Add/Delete using JS DOM</li>
+                            <li>Mini quiz app with multiple questions and scoring</li>
+                        </ul>
+                        
+                        <h3>Recommended Resources:</h3>
+                        <ul>
+                            <li>CSS Flexbox – CSS-Tricks</li>
+                            <li>Grid Layout – MDN</li>
+                            <li>DOM Manipulation Guide – JavaScript.info</li>
+                        </ul>""",
+                        course_id=web_dev_course.id
+                    ),
+                    Module(
+                        order=3,
+                        title="Backend Development with PHP & MySQL",
+                        content="""<h2>Backend Development with PHP & MySQL</h2>
+                        <p><strong>Week 3 Theme:</strong> Learn how the backend works and handle user data dynamically.</p>
+                        
+                        <h3>Key Topics:</h3>
+                        <ul>
+                            <li>PHP Syntax, Variables, Conditionals, $_GET & $_POST</li>
+                            <li>Connecting PHP with MySQL using mysqli or PDO</li>
+                            <li>SQL Basics: SELECT, INSERT, UPDATE, DELETE</li>
+                            <li>Building CRUD operations</li>
+                        </ul>
+                        
+                        <h3>Activities:</h3>
+                        <ul>
+                            <li>Contact form storing entries in MySQL</li>
+                            <li>Display form entries in a styled HTML table</li>
+                            <li>Optional: Add a simple login form with PHP sessions</li>
+                        </ul>
+                        
+                        <h3>Recommended Resources:</h3>
+                        <ul>
+                            <li>PHP Basics – W3Schools</li>
+                            <li>PHP & MySQL Tutorial – TutorialRepublic</li>
+                            <li>SQL Tutorial – W3Schools</li>
+                        </ul>""",
+                        course_id=web_dev_course.id
+                    ),
+                    Module(
+                        order=4,
+                        title="Full-Stack Web Project Development & Deployment",
+                        content="""<h2>Full-Stack Web Project Development & Deployment</h2>
+                        <p><strong>Week 4 Theme:</strong> Build, secure, and present a dynamic, real-world app.</p>
+                        
+                        <h3>Key Topics:</h3>
+                        <ul>
+                            <li>Project planning and file organization</li>
+                            <li>Connecting frontend and backend</li>
+                            <li>Input validation and security tips</li>
+                            <li>Testing and deploying</li>
+                        </ul>
+                        
+                        <h3>Final Project Options:</h3>
+                        <ul>
+                            <li>Task Manager App</li>
+                            <li>Student Portal</li>
+                            <li>Simple Blog or Guestbook</li>
+                        </ul>
+                        
+                        <h3>Recommended Resources:</h3>
+                        <ul>
+                            <li>PHP Form Validation – PHP.net</li>
+                            <li>Deploying PHP App with XAMPP – Bitnami Guide</li>
+                            <li>Security Checklist – OWASP Top 10</li>
+                        </ul>""",
+                        course_id=web_dev_course.id
+                    ),
+                    Module(
+                        order=5,
+                        title="Final Quiz",
+                        content="""<h2>Web Development Crash Course Quiz</h2>
+                        <p>Test your knowledge of web development fundamentals with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>""",
+                        course_id=web_dev_course.id
+                    )
+                ]
+                
+                for module in web_dev_modules:
+                    db.session.add(module)
+                db.session.commit()
+                print("Created all modules for Web Development course")
+                
+                # Create quiz questions for Web Development course
+                web_dev_quiz_module = Module.query.filter_by(course_id=web_dev_course.id, order=5).first()
+                web_dev_quiz_questions = [
+                    QuizQuestion(
+                        question_text="Which HTML tag is used to insert an image?",
+                        option_a="<pic>",
+                        option_b="<media>",
+                        option_c="<img>",
+                        option_d="<src>",
+                        correct_answer="c",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which property in CSS controls the layout spacing outside an element?",
+                        option_a="padding",
+                        option_b="margin",
+                        option_c="border",
+                        option_d="position",
+                        correct_answer="b",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What JavaScript keyword is used to declare a variable?",
+                        option_a="varname",
+                        option_b="data",
+                        option_c="let",
+                        option_d="constance",
+                        correct_answer="c",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which layout method provides a grid-like structure in CSS?",
+                        option_a="Flexbox",
+                        option_b="Float",
+                        option_c="CSS Grid",
+                        option_d="Inline-block",
+                        correct_answer="c",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="How do you select an element by ID using JavaScript?",
+                        option_a="getElementsByClass()",
+                        option_b="querySelectorAll('#id')",
+                        option_c="document.getElementById('id')",
+                        option_d="document.id('id')",
+                        correct_answer="c",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which PHP global is used to access form data submitted with POST method?",
+                        option_a="$POST",
+                        option_b="$_POST",
+                        option_c="$FormData",
+                        option_d="$_DATA",
+                        correct_answer="b",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What SQL statement is used to retrieve data?",
+                        option_a="INSERT",
+                        option_b="SELECT",
+                        option_c="UPDATE",
+                        option_d="DELETE",
+                        correct_answer="b",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which language runs in the browser and controls page interaction?",
+                        option_a="PHP",
+                        option_b="JavaScript",
+                        option_c="Python",
+                        option_d="SQL",
+                        correct_answer="b",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What does XAMPP provide?",
+                        option_a="A version of Git",
+                        option_b="A local server for PHP & MySQL",
+                        option_c="A text editor",
+                        option_d="Hosting on GitHub",
+                        correct_answer="b",
+                        module_id=web_dev_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which is a best practice for user input security?",
+                        option_a="Disable JavaScript",
+                        option_b="Validate and sanitize all inputs",
+                        option_c="Use inline scripts",
+                        option_d="Minify CSS files",
+                        correct_answer="b",
+                        module_id=web_dev_quiz_module.id
+                    )
+                ]
+                
+                for question in web_dev_quiz_questions:
+                    db.session.add(question)
+                db.session.commit()
+                print("Created quiz questions for Web Development course")
+
+            # Check if Civil 3D course exists
+            if Course.query.filter_by(title="AutoCAD Civil 3D Crash Course").first():
+                print("AutoCAD Civil 3D course already exists")
+            else:
+                # Create Civil 3D course
+                civil3d_course = Course(
+                    title="AutoCAD Civil 3D Crash Course",
+                    description="Master AutoCAD Civil 3D for geospatial, land surveying, and engineering surveying. Learn surface modeling, parceling, road alignment, and volume calculations.",
+                    duration="4 weeks",
+                    mode="Online & Physical (Hybrid)",
+                    fee="KES 20,000",
+                    is_active=True
+                )
+                db.session.add(civil3d_course)
+                db.session.commit()
+                print("Created AutoCAD Civil 3D Crash Course")
+
+                # Create modules for Civil 3D course
+                civil3d_modules = [
+                    Module(
+                        order=1,
+                        title="Introduction to Civil 3D for Surveying & Geospatial Mapping",
+                        content="""<h2>Introduction to Civil 3D for Surveying & Geospatial Mapping</h2>
+                        <p><strong>Theme:</strong> Get familiar with the Civil 3D environment and start managing survey data.</p>
+                        
+                        <h3>Key Topics:</h3>
+                        <ul>
+                            <li>Overview of AutoCAD vs Civil 3D</li>
+                            <li>Understanding the Civil 3D workspace, toolspace, and templates</li>
+                            <li>Setting coordinate systems (NAD83, WGS84, UTM, Local Grid)</li>
+                            <li>Importing survey points from CSV or data collectors</li>
+                            <li>Working with description keys and point groups</li>
+                            <li>Creating and labeling surfaces from points</li>
+                        </ul>
+                        
+                        <h3>Activities:</h3>
+                        <ul>
+                            <li>Import and manage raw point data</li>
+                            <li>Create a Digital Terrain Model (DTM) surface</li>
+                            <li>Apply contour labeling and display styles</li>
+                        </ul>
+                        
+                        <h3>Resources:</h3>
+                        <ul>
+                            <li>Autodesk Civil 3D Introduction Video</li>
+                            <li>Survey Data in Civil 3D – Autodesk Help</li>
+                        </ul>""",
+                        course_id=civil3d_course.id
+                    ),
+                    Module(
+                        order=2,
+                        title="Surface Modeling, Profiles, and Terrain Analysis",
+                        content="""<h2>Surface Modeling, Profiles, and Terrain Analysis</h2>
+                        <p><strong>Theme:</strong> Build surfaces, generate profiles, and analyze terrain features.</p>
+                        
+                        <h3>Key Topics:</h3>
+                        <ul>
+                            <li>Creating TIN surfaces from survey data and breaklines</li>
+                            <li>Adding boundaries and contours</li>
+                            <li>Creating surface profiles along alignments</li>
+                            <li>Extracting spot elevations and slope analysis</li>
+                            <li>Labeling surface data dynamically</li>
+                        </ul>
+                        
+                        <h3>Activities:</h3>
+                        <ul>
+                            <li>Draw an alignment and generate a surface profile</li>
+                            <li>Analyze cut-and-fill using two surfaces</li>
+                            <li>Create slope maps and contour maps for export</li>
+                        </ul>
+                        
+                        <h3>Resources:</h3>
+                        <ul>
+                            <li>Civil 3D Surface Modeling Basics – Autodesk</li>
+                            <li>Profile Creation – YouTube Civil 3D Tutorial</li>
+                        </ul>""",
+                        course_id=civil3d_course.id
+                    ),
+                    Module(
+                        order=3,
+                        title="Parcels, Alignments, and Site Design Tools",
+                        content="""<h2>Parcels, Alignments, and Site Design Tools</h2>
+                        <p><strong>Theme:</strong> Create parcels, alignments, and prepare site layout for engineering use.</p>
+                        
+                        <h3>Key Topics:</h3>
+                        <ul>
+                            <li>Parcel creation from layout tools and polylines</li>
+                            <li>Using alignments for roads, boundaries, or canals</li>
+                            <li>Creating and editing feature lines</li>
+                            <li>Corridor modeling basics</li>
+                            <li>Site grading and earthwork setup</li>
+                        </ul>
+                        
+                        <h3>Activities:</h3>
+                        <ul>
+                            <li>Subdivide a site using parcel tools and add labels</li>
+                            <li>Create a basic road alignment with offset and station labels</li>
+                            <li>Grade a site with slopes, benches, and create volume surfaces</li>
+                        </ul>
+                        
+                        <h3>Resources:</h3>
+                        <ul>
+                            <li>Parcels in Civil 3D – Official Guide</li>
+                            <li>Corridor Basics – Autodesk YouTube</li>
+                        </ul>""",
+                        course_id=civil3d_course.id
+                    ),
+                    Module(
+                        order=4,
+                        title="Quantity Takeoff, Data Sharing, and Final Plot Production",
+                        content="""<h2>Quantity Takeoff, Data Sharing, and Final Plot Production</h2>
+                        <p><strong>Theme:</strong> Extract quantities, prepare final deliverables, and share Civil 3D data effectively.</p>
+                        
+                        <h3>Key Topics:</h3>
+                        <ul>
+                            <li>Cut & fill volume calculations between surfaces</li>
+                            <li>Earthwork quantity reporting</li>
+                            <li>Creating cross-sections</li>
+                            <li>Data shortcut management</li>
+                            <li>Producing annotated plan & profile sheets</li>
+                            <li>Exporting to GIS, PDF, DWG, and LandXML formats</li>
+                        </ul>
+                        
+                        <h3>Activities:</h3>
+                        <ul>
+                            <li>Generate cross-sections and quantity reports</li>
+                            <li>Create a layout sheet with plan/profile view</li>
+                            <li>Export surface to GIS shapefile and LandXML</li>
+                        </ul>
+                        
+                        <h3>Resources:</h3>
+                        <ul>
+                            <li>Civil 3D Earthwork Quantities – Tutorial</li>
+                            <li>Civil 3D to GIS Export – Autodesk Knowledge</li>
+                        </ul>""",
+                        course_id=civil3d_course.id
+                    ),
+                    Module(
+                        order=5,
+                        title="Final Quiz",
+                        content="""<h2>AutoCAD Civil 3D Fundamentals Quiz</h2>
+                        <p>Test your knowledge of Civil 3D fundamentals with this comprehensive quiz. Each question has multiple choice answers. Select the best answer for each question.</p>""",
+                        course_id=civil3d_course.id
+                    )
+                ]
+                
+                for module in civil3d_modules:
+                    db.session.add(module)
+                db.session.commit()
+                print("Created all modules for Civil 3D course")
+                
+                # Create quiz questions for Civil 3D course
+                civil3d_quiz_module = Module.query.filter_by(course_id=civil3d_course.id, order=5).first()
+                civil3d_quiz_questions = [
+                    QuizQuestion(
+                        question_text="What does a TIN surface in Civil 3D represent?",
+                        option_a="A type of 2D surface used for drafting",
+                        option_b="A flat map with elevation symbols",
+                        option_c="A triangulated network of 3D points representing terrain",
+                        option_d="A data table of elevations",
+                        correct_answer="c",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which Civil 3D object is used to define the horizontal path of a road or pipeline?",
+                        option_a="Feature Line",
+                        option_b="Alignment",
+                        option_c="Profile",
+                        option_d="Parcel Line",
+                        correct_answer="b",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="In Civil 3D, what is the purpose of a description key?",
+                        option_a="To filter alignments",
+                        option_b="To automatically assign styles and layers to points",
+                        option_c="To label surfaces",
+                        option_d="To generate volumes",
+                        correct_answer="b",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What does the 'Point Group' in Civil 3D help you manage?",
+                        option_a="Volume computations",
+                        option_b="Road design templates",
+                        option_c="Sets of survey points with shared characteristics",
+                        option_d="File import formats",
+                        correct_answer="c",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which tool is used to calculate cut and fill between two surfaces?",
+                        option_a="Grading Tool",
+                        option_b="Surface Slope Analysis",
+                        option_c="Earthwork Volume Report",
+                        option_d="Corridor Surfaces",
+                        correct_answer="c",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What is the first step when creating a parcel in Civil 3D from a closed polyline?",
+                        option_a="Export the polyline as a shapefile",
+                        option_b="Assign a feature line",
+                        option_c="Convert it to a parcel using the 'Create Parcel from Object' tool",
+                        option_d="Assign a coordinate system",
+                        correct_answer="c",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which command allows you to create contour lines from a surface?",
+                        option_a="Create Profile View",
+                        option_b="Add Labels",
+                        option_c="Extract Contours",
+                        option_d="Surface Properties > Contours",
+                        correct_answer="d",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="How do you define elevations along an alignment for road design?",
+                        option_a="By creating a feature line",
+                        option_b="By assigning a parcel boundary",
+                        option_c="By creating a surface",
+                        option_d="By creating a profile view",
+                        correct_answer="d",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="Which export format is best for sharing terrain data with GIS software?",
+                        option_a="DWG",
+                        option_b="DXF",
+                        option_c="LandXML",
+                        option_d="PDF",
+                        correct_answer="c",
+                        module_id=civil3d_quiz_module.id
+                    ),
+                    QuizQuestion(
+                        question_text="What is a Corridor in Civil 3D primarily used for?",
+                        option_a="Mapping flood zones",
+                        option_b="Modeling roads, channels, or railways based on assemblies",
+                        option_c="Managing coordinate systems",
+                        option_d="Creating boundary layouts",
+                        correct_answer="b",
+                        module_id=civil3d_quiz_module.id
+                    )
+                ]
+                
+                for question in civil3d_quiz_questions:
+                    db.session.add(question)
+                db.session.commit()
+                print("Created quiz questions for Civil 3D course")
+                
+        except Exception as e:
+            print(f"Error creating courses: {str(e)}")
+            db.session.rollback()
+
+# Add the new courses
+add_web_dev_and_civil3d_courses()
+
+def add_additional_courses():
+    with app.app_context():
+        try:
+            # List of new courses to add
+            new_courses = [
+                {
+                    "title": "ArcGIS for Geospatial and Survey Applications",
+                    "description": "Master ArcGIS for geospatial applications. Learn data creation, analysis, visualization, and map publishing using ArcGIS Online.",
+                    "duration": "4 weeks",
+                    "mode": "Online & Physical (Hybrid)",
+                    "fee": "KES 25,000",
+                    "modules": [
+                        {
+                            "title": "Getting Started with ArcGIS",
+                            "content": """<h2>Getting Started with ArcGIS</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>ArcGIS Desktop vs Pro overview</li>
+                                <li>Shapefiles, layers, and projections</li>
+                                <li>Add and symbolize data, explore attribute tables</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Data Editing and Geoprocessing",
+                            "content": """<h2>Data Editing and Geoprocessing</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Digitizing, snapping, and topology</li>
+                                <li>Buffer, clip, intersect, merge, dissolve</li>
+                                <li>Join and relate tables</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Spatial Analysis and Mapping",
+                            "content": """<h2>Spatial Analysis and Mapping</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Thematic mapping and classification</li>
+                                <li>Spatial query and selection tools</li>
+                                <li>Geocoding and spatial joins</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "ArcGIS Online and Sharing Maps",
+                            "content": """<h2>ArcGIS Online and Sharing Maps</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Intro to ArcGIS Online & Web Maps</li>
+                                <li>Publishing map services</li>
+                                <li>Sharing and embedding maps</li>
+                            </ul>"""
+                        }
+                    ]
+                },
+                {
+                    "title": "ArchiCAD for Building and Infrastructure Designers",
+                    "description": "Learn ArchiCAD for architectural design. Master 3D modeling, documentation, and BIM collaboration.",
+                    "duration": "4 weeks",
+                    "mode": "Online & Physical (Hybrid)",
+                    "fee": "KES 30,000",
+                    "modules": [
+                        {
+                            "title": "ArchiCAD Interface & Modeling Basics",
+                            "content": """<h2>ArchiCAD Interface & Modeling Basics</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Workspace orientation</li>
+                                <li>Story settings, walls, slabs, roofs</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Advanced Object Placement",
+                            "content": """<h2>Advanced Object Placement</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Windows, doors, stairs, columns</li>
+                                <li>Object libraries and parametric editing</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Documentation and Annotation",
+                            "content": """<h2>Documentation and Annotation</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Dimensions, labels, sections, elevations</li>
+                                <li>Layout book, publishing drawings</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Rendering and BIM Collaboration",
+                            "content": """<h2>Rendering and BIM Collaboration</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>3D views and rendering tools</li>
+                                <li>IFC export and BIMcloud collaboration</li>
+                            </ul>"""
+                        }
+                    ]
+                },
+                {
+                    "title": "Global Mapper Essentials",
+                    "description": "Master Global Mapper for GIS and terrain analysis. Learn raster handling, vector editing, and data conversion.",
+                    "duration": "3 weeks",
+                    "mode": "Online & Physical (Hybrid)",
+                    "fee": "KES 20,000",
+                    "modules": [
+                        {
+                            "title": "Introduction to Interface and Raster Handling",
+                            "content": """<h2>Introduction to Interface and Raster Handling</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Exploring UI, loading raster data</li>
+                                <li>Coordinate systems</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Vector Data Editing and Terrain Analysis",
+                            "content": """<h2>Vector Data Editing and Terrain Analysis</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Creating shapefiles, digitizing tools</li>
+                                <li>Contours, slope maps</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Data Conversion and Export",
+                            "content": """<h2>Data Conversion and Export</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Format conversion, GPS data integration</li>
+                                <li>Exporting tiles</li>
+                            </ul>"""
+                        }
+                    ]
+                },
+                {
+                    "title": "Graphic Design Mastery with Canva & Adobe Suite",
+                    "description": "Master graphic design using Canva and Adobe Creative Suite. Learn design principles, image editing, and vector design.",
+                    "duration": "4 weeks",
+                    "mode": "Online & Physical (Hybrid)",
+                    "fee": "KES 25,000",
+                    "modules": [
+                        {
+                            "title": "Design Principles and Canva Basics",
+                            "content": """<h2>Design Principles and Canva Basics</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Typography, alignment, hierarchy</li>
+                                <li>Color theory, designing with templates</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Adobe Photoshop for Image Editing",
+                            "content": """<h2>Adobe Photoshop for Image Editing</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Layer management, masks</li>
+                                <li>Adjustment layers, background removal</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Adobe Illustrator for Vector Design",
+                            "content": """<h2>Adobe Illustrator for Vector Design</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Pen tool, shapes, paths</li>
+                                <li>Logo design, custom illustrations</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Branding and Portfolio Creation",
+                            "content": """<h2>Branding and Portfolio Creation</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Creating a brand kit, mockups</li>
+                                <li>Exporting assets, portfolio presentation</li>
+                            </ul>"""
+                        }
+                    ]
+                },
+                {
+                    "title": "Carlson 3D for Land Surveying and Engineering",
+                    "description": "Master Carlson 3D for surveying and engineering. Learn data import, surface modeling, and road design.",
+                    "duration": "4 weeks",
+                    "mode": "Online & Physical (Hybrid)",
+                    "fee": "KES 28,000",
+                    "modules": [
+                        {
+                            "title": "Survey Data Import and Field-to-Finish",
+                            "content": """<h2>Survey Data Import and Field-to-Finish</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Importing RAW/JOB files</li>
+                                <li>Codes and linework, COGO</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Surface and Contour Modeling",
+                            "content": """<h2>Surface and Contour Modeling</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Creating TINs, breaklines</li>
+                                <li>Contours, profiles</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Road Design and Sections",
+                            "content": """<h2>Road Design and Sections</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Alignments, cross sections</li>
+                                <li>Templates, volume reports</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Plotting, Annotation, and Output",
+                            "content": """<h2>Plotting, Annotation, and Output</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Sheet setup, scale, plotting</li>
+                                <li>Labeling points and features</li>
+                            </ul>"""
+                        }
+                    ]
+                },
+                {
+                    "title": "Adobe Creative Cloud Essentials",
+                    "description": "Master Adobe Creative Cloud tools. Learn Photoshop, Illustrator, and InDesign for professional design work.",
+                    "duration": "4 weeks",
+                    "mode": "Online & Physical (Hybrid)",
+                    "fee": "KES 30,000",
+                    "modules": [
+                        {
+                            "title": "Adobe Photoshop",
+                            "content": """<h2>Adobe Photoshop</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Image adjustments, retouching</li>
+                                <li>Masking, compositing</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Adobe Illustrator",
+                            "content": """<h2>Adobe Illustrator</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Vector art, logo design</li>
+                                <li>Tracing, type effects</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Adobe InDesign",
+                            "content": """<h2>Adobe InDesign</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Document layout, master pages</li>
+                                <li>Typography</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Cross-App Workflows & Exports",
+                            "content": """<h2>Cross-App Workflows & Exports</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Moving files across apps</li>
+                                <li>Preparing for print/web</li>
+                            </ul>"""
+                        }
+                    ]
+                },
+                {
+                    "title": "Advanced Python for Databases and Automation",
+                    "description": "Master Python for database management and automation. Learn ORM, web development, and data processing.",
+                    "duration": "4 weeks",
+                    "mode": "Online & Physical (Hybrid)",
+                    "fee": "KES 25,000",
+                    "modules": [
+                        {
+                            "title": "Python and Relational Databases",
+                            "content": """<h2>Python and Relational Databases</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>SQLite, PostgreSQL, MySQL</li>
+                                <li>Database connections and queries</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "ORM with SQLAlchemy & Data Models",
+                            "content": """<h2>ORM with SQLAlchemy & Data Models</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Tables, relationships</li>
+                                <li>Queries, migrations</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Building Data Dashboards or APIs",
+                            "content": """<h2>Building Data Dashboards or APIs</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Flask/FastAPI for web apps</li>
+                                <li>Frontend integration</li>
+                            </ul>"""
+                        },
+                        {
+                            "title": "Automation and Integration",
+                            "content": """<h2>Automation and Integration</h2>
+                            <p><strong>Key Topics:</strong></p>
+                            <ul>
+                                <li>Automating reports, ETL</li>
+                                <li>REST APIs, data sync</li>
+                            </ul>"""
+                        }
+                    ]
+                }
+            ]
+
+            # Add each course
+            for course_data in new_courses:
+                # Check if course already exists
+                if Course.query.filter_by(title=course_data["title"]).first():
+                    print(f"Course '{course_data['title']}' already exists")
+                    continue
+
+                # Create course
+                course = Course(
+                    title=course_data["title"],
+                    description=course_data["description"],
+                    duration=course_data["duration"],
+                    mode=course_data["mode"],
+                    fee=course_data["fee"],
+                    is_active=True
+                )
+                db.session.add(course)
+                db.session.commit()
+                print(f"Created course: {course_data['title']}")
+
+                # Create modules
+                for i, module_data in enumerate(course_data["modules"], 1):
+                    module = Module(
+                        order=i,
+                        title=module_data["title"],
+                        content=module_data["content"],
+                        course_id=course.id
+                    )
+                    db.session.add(module)
+                db.session.commit()
+                print(f"Created modules for {course_data['title']}")
+
+                # Create quiz module
+                quiz_module = Module(
+                    order=len(course_data["modules"]) + 1,
+                    title="Final Project",
+                    content=f"""<h2>{course_data['title']} Final Project</h2>
+                    <p>This module contains your final project requirements and submission guidelines. Your project will be evaluated based on the following criteria:</p>
+                    
+                    <h3>Project Deliverables:</h3>
+                    <ul>
+                        <li>Complete project files and documentation</li>
+                        <li>Project report explaining your approach and methodology</li>
+                        <li>Presentation of your work and results</li>
+                    </ul>
+                    
+                    <h3>Evaluation Criteria:</h3>
+                    <ul>
+                        <li>Technical accuracy and completeness</li>
+                        <li>Quality of implementation</li>
+                        <li>Documentation and presentation</li>
+                        <li>Problem-solving approach</li>
+                    </ul>
+                    
+                    <h3>Submission Guidelines:</h3>
+                    <ul>
+                        <li>Submit all project files in a single ZIP archive</li>
+                        <li>Include a detailed project report in PDF format</li>
+                        <li>Prepare a 10-minute presentation of your work</li>
+                        <li>Deadline: End of Week {course_data['duration'].split()[0]}</li>
+                    </ul>""",
+                    course_id=course.id
+                )
+                db.session.add(quiz_module)
+                db.session.commit()
+                print(f"Created final project module for {course_data['title']}")
+
+        except Exception as e:
+            print(f"Error creating courses: {str(e)}")
+            db.session.rollback()
+
+# Add the additional courses
+add_additional_courses()
 
 # Import fallback routes
 try:
