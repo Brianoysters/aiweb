@@ -2305,7 +2305,8 @@ def test_image(filename):
 
 @app.route('/brochure')
 def brochure():
-    return render_template('brochure.html')
+    courses = Course.query.filter_by(is_active=True).all()
+    return render_template('brochure.html', courses=courses)
 
 if __name__ == '__main__':
     app.run(debug=True)

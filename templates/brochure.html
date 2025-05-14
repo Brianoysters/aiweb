@@ -1,44 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container-fluid mt-5">
     <div class="brochure-section">
         <h1 class="text-center mb-5">Course Brochures</h1>
         
         <div class="row justify-content-center">
-            <div class="col-md-6 mb-4">
+            {% for course in courses %}
+            <div class="col-lg-4 col-md-6 mb-4">
                 <div class="brochure-card">
                     <div class="brochure-image">
-                        <img src="{{ url_for('static', filename='subo1.jpg') }}" 
-                             alt="Web Development Crash Course" 
-                             class="img-fluid"
-                             onerror="console.log('Error loading image:', this.src)">
+                        {% if course.title == "Web Development Crash Course" %}
+                            <img src="{{ url_for('static', filename='subo1.jpg') }}" 
+                                 alt="{{ course.title }}" 
+                                 class="img-fluid"
+                                 onerror="console.log('Error loading image:', this.src)">
+                        {% elif course.title == "AutoCAD Civil 3D Crash Course" %}
+                            <img src="{{ url_for('static', filename='subo2.jpg') }}" 
+                                 alt="{{ course.title }}" 
+                                 class="img-fluid"
+                                 onerror="console.log('Error loading image:', this.src)">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='default_course.jpg') }}" 
+                                 alt="{{ course.title }}" 
+                                 class="img-fluid"
+                                 onerror="console.log('Error loading image:', this.src)">
+                        {% endif %}
                     </div>
                     <div class="brochure-content">
-                        <h3>Web Development Crash Course</h3>
-                        <p class="text-muted">Learn modern web development technologies and build real-world projects</p>
-                        <a href="{{ url_for('course', course_id=web_dev_course.id) if web_dev_course else '#' }}" 
+                        <h3>{{ course.title }}</h3>
+                        <p class="text-muted">{{ course.description }}</p>
+                        <div class="course-details">
+                            <p><strong>Duration:</strong> {{ course.duration }}</p>
+                            <p><strong>Mode:</strong> {{ course.mode }}</p>
+                            <p><strong>Fee:</strong> {{ course.fee }}</p>
+                        </div>
+                        <a href="{{ url_for('course', course_id=course.id) }}" 
                            class="btn btn-primary">View Course Details</a>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-6 mb-4">
-                <div class="brochure-card">
-                    <div class="brochure-image">
-                        <img src="{{ url_for('static', filename='subo2.jpg') }}" 
-                             alt="AutoCAD Civil 3D Crash Course" 
-                             class="img-fluid"
-                             onerror="console.log('Error loading image:', this.src)">
-                    </div>
-                    <div class="brochure-content">
-                        <h3>AutoCAD Civil 3D Crash Course</h3>
-                        <p class="text-muted">Master civil engineering design and documentation with AutoCAD Civil 3D</p>
-                        <a href="{{ url_for('course', course_id=civil3d_course.id) if civil3d_course else '#' }}" 
-                           class="btn btn-primary">View Course Details</a>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -55,6 +57,8 @@
         overflow: hidden;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     .brochure-card:hover {
@@ -65,7 +69,7 @@
     .brochure-image {
         position: relative;
         overflow: hidden;
-        padding-top: 75%; /* 4:3 Aspect Ratio */
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
     }
 
     .brochure-image img {
@@ -85,6 +89,9 @@
     .brochure-content {
         padding: 1.5rem;
         text-align: center;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
     }
 
     .brochure-content h3 {
@@ -95,8 +102,21 @@
     }
 
     .brochure-content p {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         line-height: 1.6;
+    }
+
+    .course-details {
+        margin: 1rem 0;
+        text-align: left;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .course-details p {
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
     }
 
     .btn-primary {
@@ -108,6 +128,7 @@
         letter-spacing: 0.5px;
         border-radius: 5px;
         transition: all 0.3s ease;
+        margin-top: auto;
     }
 
     .btn-primary:hover {
@@ -122,6 +143,10 @@
         
         .brochure-content h3 {
             font-size: 1.3rem;
+        }
+
+        .course-details {
+            padding: 0.75rem;
         }
     }
 </style>
