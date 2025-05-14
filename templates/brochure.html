@@ -5,29 +5,37 @@
     <div class="brochure-section">
         <h1 class="text-center mb-5">Course Brochures</h1>
         
+        <!-- Course Flyers -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-6 col-md-8">
+                <div class="brochure-card">
+                    <div class="brochure-image">
+                        <img src="{{ url_for('static', filename='subo1.jpg') }}" 
+                             alt="Course Brochure 1" 
+                             class="img-fluid"
+                             onerror="console.log('Error loading image:', this.src)">
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-8">
+                <div class="brochure-card">
+                    <div class="brochure-image">
+                        <img src="{{ url_for('static', filename='subo2.jpg') }}" 
+                             alt="Course Brochure 2" 
+                             class="img-fluid"
+                             onerror="console.log('Error loading image:', this.src)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course List -->
+        <h2 class="text-center mb-4">Available Courses</h2>
         <div class="row justify-content-center">
             {% for course in courses %}
             <div class="col-lg-4 col-md-6 mb-4">
-                <div class="brochure-card">
-                    <div class="brochure-image">
-                        {% if course.title == "Web Development Crash Course" %}
-                            <img src="{{ url_for('static', filename='subo1.jpg') }}" 
-                                 alt="{{ course.title }}" 
-                                 class="img-fluid"
-                                 onerror="console.log('Error loading image:', this.src)">
-                        {% elif course.title == "AutoCAD Civil 3D Crash Course" %}
-                            <img src="{{ url_for('static', filename='subo2.jpg') }}" 
-                                 alt="{{ course.title }}" 
-                                 class="img-fluid"
-                                 onerror="console.log('Error loading image:', this.src)">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='default_course.jpg') }}" 
-                                 alt="{{ course.title }}" 
-                                 class="img-fluid"
-                                 onerror="console.log('Error loading image:', this.src)">
-                        {% endif %}
-                    </div>
-                    <div class="brochure-content">
+                <div class="course-card">
+                    <div class="course-content">
                         <h3>{{ course.title }}</h3>
                         <p class="text-muted">{{ course.description }}</p>
                         <div class="course-details">
@@ -56,9 +64,7 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         overflow: hidden;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
+        margin-bottom: 2rem;
     }
 
     .brochure-card:hover {
@@ -69,24 +75,31 @@
     .brochure-image {
         position: relative;
         overflow: hidden;
-        padding-top: 56.25%; /* 16:9 Aspect Ratio */
     }
 
     .brochure-image img {
-        position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .course-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
     }
 
-    .brochure-card:hover .brochure-image img {
-        transform: scale(1.05);
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
-    .brochure-content {
+    .course-content {
         padding: 1.5rem;
         text-align: center;
         flex-grow: 1;
@@ -94,14 +107,14 @@
         flex-direction: column;
     }
 
-    .brochure-content h3 {
+    .course-content h3 {
         color: #2c3e50;
         font-size: 1.5rem;
         margin-bottom: 1rem;
         font-weight: 600;
     }
 
-    .brochure-content p {
+    .course-content p {
         margin-bottom: 1rem;
         line-height: 1.6;
     }
@@ -137,11 +150,11 @@
     }
 
     @media (max-width: 768px) {
-        .brochure-card {
+        .brochure-card, .course-card {
             margin-bottom: 2rem;
         }
         
-        .brochure-content h3 {
+        .course-content h3 {
             font-size: 1.3rem;
         }
 
