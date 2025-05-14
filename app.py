@@ -20,6 +20,12 @@ load_dotenv()  # Load environment variables from .env file
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
 
+# Add debug logging for static files
+@app.before_request
+def log_request_info():
+    app.logger.debug('Headers: %s', request.headers)
+    app.logger.debug('URL: %s', request.url)
+
 # Use hardcoded value temporarily for Railway MySQL deployment
 DATABASE_URL = "mysql://root:RlnjaHZoFYoaoxssxFHKtLFQlvwqninP@yamanote.proxy.rlwy.net:17657/railway"
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
@@ -2292,6 +2298,14 @@ def internal_error(error):
                          message="Internal Server Error",
                          error="The server encountered an error. Please try again later or contact support.",
                          user=current_user if current_user.is_authenticated else None), 500
+
+@app.route('/test-image/<filename>')
+def test_image(filename):
+    return send_file(f'static/{filename}', mimetype='image/jpeg')
+
+@app.route('/brochure')
+def brochure():
+    return render_template('brochure.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
